@@ -3,21 +3,29 @@
 Voiceover for ElevenLabs + scene cues for a neo-brutalist motion-graphics edit (9:16 or 16:9).
 ~140 spoken words ≈ 55–60 s.
 
-## Voiceover (paste this block into ElevenLabs)
+## Voiceover v3 (~177 words, Multilingual v2 — no [tags])
 
-Every pay period, I lost two hours turning WhatsApp messages and crumpled receipts into payroll.
+Two jobs used to eat my week.
 
-I'm Kunal, Production Manager at AVEOM, an events company in Dubai. My capstone asks one question: does a person working with AI beat either one alone?
+Shift tracking: crew hours scattered across WhatsApp messages and site records, checked with on-site managers. One hour, for thirty shifts.
 
-So I built AVEOM OPS.
+Petty cash: fifteen bills to collect, read, and match to the money handed out. Another hour.
 
-Crew log their shifts on their phones, even with no signal. For petty cash, they photograph a bill. The AI reads the amount, the date and the shop. The person checks it, and submits.
+I'm Kunal, Production Manager at AVEOM, an events company in Dubai. My capstone asks: does a person working with AI beat either one alone?
 
-The AI does the reading. The human does the judging.
+So I built AVEOM OPS!
 
-And they fail in different ways. On one bill, the AI invented a missing year, and the person typed the wrong day. The app caught it, and the design got better.
+Crew log shifts on their phones, even offline, and the pay works itself out.
 
-Two hour-long admin jobs now take under half the time. And every bill records what the AI read, and what the human changed. That's the evidence for my capstone.
+For petty cash, they snap a bill. The AI reads the amount, date and shop. The person checks it, and submits.
+
+The AI reads. The human judges.
+
+And they fail differently. On one bill, the AI invented a missing year, and the person typed the wrong day. The app flagged it.
+
+Only the owner sends money, nobody approves their own bill, and every change is logged.
+
+Both jobs now take under HALF the time, and every bill records what the AI read and what the human changed. That's my capstone evidence.
 
 ## Scene cues
 
@@ -30,6 +38,7 @@ Two hour-long admin jobs now take under half the time. And every bill records wh
 | 22–32 s | "For petty cash, they photograph a bill… checks it, and submits." | Receipt cut-out slides into phone; four fields fill one by one (**AED 61.50 · 16 SEP · SHOP · ITEMS**); thumb taps **SUBMIT** |
 | 32–36 s | "The AI does the reading. The human does the judging." | Split screen: left **AI = READS** (eye icon), right **HUMAN = JUDGES** (gavel/check) |
 | 36–45 s | "And they fail in different ways…" | The same bill: year flips to **2023** in red (AI), day flips to **9** in red (human); a yellow warning sticker **1,126 DAYS OLD?** slaps on; then both turn green |
+| — | "It's built to be trusted, too…" | Three stamped badges slam in: **OWNER SENDS MONEY · NO SELF-APPROVAL · EVERY CHANGE LOGGED** with a padlock |
 | 45–52 s | "Two hour-long admin jobs now take under half the time." | Two chunky bar charts: **60 MIN → <30** for 15 bills and for 30 shifts |
 | 52–60 s | "Every bill records what the AI read, and what the human changed…" | Ledger row: **AI READ** vs **HUMAN KEPT** columns; end card **AVEOM OPS · aveom-ops.web.app · 100x C7 Capstone** |
 

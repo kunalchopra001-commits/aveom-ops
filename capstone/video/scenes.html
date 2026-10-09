@@ -53,18 +53,35 @@ html, body { margin: 0; background: #000; }
 .portrait .row.stack-p { flex-direction: column; }
 
 /* S1: chaos pile */
-#s1-pile { position: absolute; inset: 14% 6% 6% 6%; }
-.portrait #s1-pile { inset: 12% 4% 8% 4%; }
+.pile { position: absolute; inset: 16% 6% 6% 6%; }
+.portrait .pile { inset: 14% 4% 8% 4%; }
 .chip { position: absolute; border: var(--line) solid var(--ink); box-shadow: var(--sh-sm); font-size: calc(var(--u) * 36);
   padding: calc(var(--u) * 18) calc(var(--u) * 26); border-radius: calc(var(--u) * 22); font-weight: 700; white-space: nowrap; }
 .chip.wa { background: #b8f5c9; border-bottom-left-radius: calc(var(--u) * 2); }
 .chip.rc { background: var(--paper); border-radius: calc(var(--u) * 4); font-family: var(--mono); font-size: calc(var(--u) * 26);
   width: calc(var(--u) * 220); height: calc(var(--u) * 270); padding: calc(var(--u) * 14); line-height: 1.5;
   background-image: repeating-linear-gradient(transparent 0 calc(var(--u)*28), rgba(0,0,0,.18) calc(var(--u)*28) calc(var(--u)*30)); }
-#s1-stamp { position: absolute; z-index: 5; display: flex; align-items: center; gap: calc(var(--u) * 24); background: var(--red); color: #fff;
+.stamp { position: absolute; z-index: 5; display: flex; align-items: center; gap: calc(var(--u) * 24); background: var(--red); color: #fff;
   font-size: calc(var(--u) * 150); padding: calc(var(--u) * 20) calc(var(--u) * 50); border: calc(var(--u)*6) solid var(--ink);
   box-shadow: calc(var(--u)*14) calc(var(--u)*14) 0 var(--ink); border-radius: calc(var(--u) * 14); font-weight: 800; letter-spacing: -0.04em; }
-#s1-stamp svg { width: calc(var(--u) * 130); height: calc(var(--u) * 130); }
+.stamp svg { width: calc(var(--u) * 130); height: calc(var(--u) * 130); }
+
+.stamp .sub { display: block; font-family: var(--mono); font-size: .3em; letter-spacing: .04em; }
+.ptag { position: absolute; top: 6%; z-index: 6; font-size: calc(var(--u) * 40); }
+.ptag.p1 { background: var(--blue); color: #fff; }
+.ptag.p2 { background: var(--saffron); }
+.chip.site { background: #fff; font-family: var(--mono); font-size: calc(var(--u) * 24); line-height: 1.5; border-radius: calc(var(--u) * 4);
+  width: calc(var(--u) * 260); white-space: pre; }
+.chip.call { background: #ffe14d; }
+.chip.cash { background: #9fe0a8; font-family: var(--mono); font-weight: 800; font-size: calc(var(--u) * 40); border-radius: calc(var(--u) * 6);
+  width: calc(var(--u) * 250); height: calc(var(--u) * 120); display: grid; place-items: center; }
+/* S0: two jobs */
+#s0-head { font-size: calc(var(--u) * 150); }
+.portrait #s0-head { font-size: calc(var(--u) * 140); }
+.job { font-size: calc(var(--u) * 96); font-weight: 800; padding: calc(var(--u) * 30) calc(var(--u) * 50); letter-spacing: -0.03em; }
+.job.j1 { background: var(--blue); color: #fff; }
+.job.j2 { background: var(--saffron); }
+.portrait #s0 .row { flex-direction: column; gap: calc(var(--u) * 40); }
 
 /* S2: name card */
 #s2-card { padding: calc(var(--u) * 50) calc(var(--u) * 70); display: flex; flex-direction: column; gap: calc(var(--u) * 16); background: var(--saffron); }
@@ -154,6 +171,21 @@ html, body { margin: 0; background: #000; }
 .who-tag.hu { background: var(--saffron); }
 #s8-head { font-size: calc(var(--u) * 120); }
 
+/* S8b trust */
+#s8b-lock { width: calc(var(--u) * 190); height: calc(var(--u) * 190); background: var(--ink); border-radius: calc(var(--u) * 28);
+  display: grid; place-items: center; box-shadow: calc(var(--u)*10) calc(var(--u)*10) 0 var(--saffron); }
+#s8b-lock svg { width: 62%; }
+#s8b-head { font-size: calc(var(--u) * 120); }
+#s8b-rules { display: flex; gap: calc(var(--u) * 36); }
+.portrait #s8b-rules { flex-direction: column; gap: calc(var(--u) * 40); }
+.rule { font-size: calc(var(--u) * 50); font-weight: 800; letter-spacing: -0.02em; padding: calc(var(--u) * 30) calc(var(--u) * 36);
+  display: flex; flex-direction: column; gap: calc(var(--u) * 10); width: calc(var(--u) * 470); line-height: 1; }
+.portrait .rule { width: calc(var(--u) * 900); font-size: calc(var(--u) * 64); }
+.rule .n { font-family: var(--mono); font-size: calc(var(--u) * 26); letter-spacing: .08em; }
+.rule.r1 { background: var(--saffron); }
+.rule.r2 { background: var(--blue); color: #fff; }
+.rule.r3 { background: var(--green); }
+
 /* S9 bars */
 #s9-charts { display: flex; gap: calc(var(--u) * 60); }
 .portrait #s9-charts { flex-direction: column; gap: calc(var(--u) * 50); }
@@ -190,7 +222,7 @@ html, body { margin: 0; background: #000; }
 .portrait .phone { zoom: 1.32; }
 .portrait #s3 .row { zoom: 1.15; flex-direction: column; gap: calc(var(--u) * 30); }
 .portrait #s3-q { font-size: calc(var(--u) * 150); }
-.portrait #s1-stamp { font-size: calc(var(--u) * 170); }
+.portrait .stamp { font-size: calc(var(--u) * 150); flex-direction: column; gap: calc(var(--u) * 6); }
 .portrait .chip { zoom: 1.15; }
 .portrait #s2-card .h { font-size: calc(var(--u) * 190); }
 .portrait #s8-head { font-size: calc(var(--u) * 150); }
@@ -223,13 +255,32 @@ html, body { margin: 0; background: #000; }
 <body>
 <div id="stage">
 
-  <!-- S1 · 0–5 s · "Every pay period, I lost two hours…" -->
-  <section class="scene" id="s1">
-    <span class="tag a" id="s1-tag" style="position:absolute;top:7%;z-index:6;font-size:calc(var(--u)*40)">Every pay period</span>
-    <div id="s1-pile"></div>
-    <div id="s1-stamp" class="a">
+  <!-- S0 · "Two jobs used to eat my week." -->
+  <section class="scene" id="s0">
+    <p class="h a" id="s0-head">Two jobs ate my <span class="hl">week</span>.</p>
+    <div class="row">
+      <div class="box job j1 a" id="s0-j1">Shift tracking</div>
+      <div class="box job j2 a" id="s0-j2">Petty cash</div>
+    </div>
+  </section>
+
+  <!-- S1a · problem 1: shift tracking -->
+  <section class="scene" id="s1a">
+    <span class="tag ptag p1 a" id="s1a-tag">Problem 1 · Shift tracking</span>
+    <div class="pile" id="s1a-pile"></div>
+    <div class="stamp a" id="s1a-stamp">
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-      2 HRS
+      <span>1 HR<span class="sub">for 30 shifts</span></span>
+    </div>
+  </section>
+
+  <!-- S1b · problem 2: petty cash -->
+  <section class="scene" id="s1b">
+    <span class="tag ptag p2 a" id="s1b-tag">Problem 2 · Petty cash</span>
+    <div class="pile" id="s1b-pile"></div>
+    <div class="stamp a" id="s1b-stamp">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <span>1 HR<span class="sub">for 15 bills</span></span>
     </div>
   </section>
 
@@ -335,6 +386,17 @@ html, body { margin: 0; background: #000; }
     </div>
   </section>
 
+  <!-- S8b · built to be trusted -->
+  <section class="scene" id="s8b">
+    <div id="s8b-lock" class="a"><svg viewBox="0 0 24 24" fill="none" stroke="#f2a93b" stroke-width="2.4" stroke-linecap="round"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="#f2a93b" stroke="#f2a93b"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></div>
+    <p class="h a" id="s8b-head">Built to be <span class="hl">trusted</span>.</p>
+    <div id="s8b-rules">
+      <div class="box rule r1 a" id="s8b-r1"><span class="n">RULE 01</span>Only the owner sends money</div>
+      <div class="box rule r2 a" id="s8b-r2"><span class="n">RULE 02</span>Nobody approves their own bill</div>
+      <div class="box rule r3 a" id="s8b-r3"><span class="n">RULE 03</span>Every change is logged</div>
+    </div>
+  </section>
+
   <!-- S9 · time saved -->
   <section class="scene" id="s9">
     <p class="h a" id="s9-head">Under <span class="hl">half</span> the time.</p>
@@ -386,10 +448,10 @@ if (PORTRAIT) stage.classList.add("portrait");
 
 /* Scene timings (seconds). Re-time these to the final voiceover. */
 const SCENES = [
-  ["s1", 0, 5], ["s2", 5, 9.5], ["s3", 9.5, 14], ["s4", 14, 17], ["s5", 17, 22],
-  ["s6", 22, 32], ["s7", 32, 36], ["s8", 36, 45], ["s9", 45, 52], ["s10", 52, 60],
+  ["s0", 0, 2.2], ["s1a", 2.2, 9], ["s1b", 9, 14.5], ["s2", 14.5, 18], ["s3", 18, 22.5], ["s4", 22.5, 24.5], ["s5", 24.5, 29],
+  ["s6", 29, 36.5], ["s7", 36.5, 39], ["s8", 39, 46], ["s8b", 46, 51.5], ["s9", 51.5, 55.5], ["s10", 55.5, 62],
 ];
-const DURATION = 60;
+const DURATION = 62;
 const S = Object.fromEntries(SCENES.map(([id, a, b]) => [id, { a, b }]));
 
 /* ---------- easing ---------- */
@@ -461,34 +523,46 @@ const U = Math.min(W, H) / 1080;
   const list = tracks.get(wipe);
   list.push({ t0: -1, t1: -0.9, from: { x: -W * 1.2 }, to: { x: -W * 1.2 }, ease: E.lin });
   for (const [id, a] of SCENES.slice(1)) {
-    if (["s2", "s4", "s7", "s9"].includes(id)) {
+    if (["s1a", "s2", "s4", "s7", "s9"].includes(id)) {
       list.push({ t0: a - 0.28, t1: a, from: { x: -W * 1.2 }, to: { x: 0 }, ease: E.in });
       list.push({ t0: a, t1: a + 0.3, from: { x: 0 }, to: { x: W * 1.2 }, ease: E.out });
     }
   }
 }
 
-// S1 — chaos pile + stamp
-{
-  const pile = $("#s1-pile");
-  const msgs = ["Site: Ravi 8-6?", "Ali came 9", "Hours for Fri??", "Who was at Expo", "Sent sheet 📄", "He left at 4", "Pls confirm hrs", "Van run 2h"];
-  let seed = 7; const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
-  const items = [];
-  msgs.forEach((m, i) => { const d = document.createElement("div"); d.className = "chip wa a"; d.textContent = m; items.push(d); });
-  ["TAXI\n42.00", "HARDWARE\n18.50", "CAFE\n61.50", "PRINT\n35.00", "FUEL\n80.00"].forEach((m) => {
-    const d = document.createElement("div"); d.className = "chip rc a"; d.innerText = m + "\n— — —\nVAT ...\nTOTAL"; items.push(d);
-  });
-  items.forEach((d, i) => {
+// S0 — two jobs
+tw("#s0-head", "s0", 0, 0.45, { y: -100 * U, o: 0 }, { y: 0, o: 1 }, "back");
+tw("#s0-j1", "s0", 0.35, 0.45, { x: -W * 0.7, r: -12 }, { x: 0, r: -3 }, "back");
+tw("#s0-j2", "s0", 0.6, 0.45, { x: W * 0.7, r: 12 }, { x: 0, r: 3 }, "back");
+
+// S1a / S1b — a pile of the old way, then the hour it cost
+function pileScene(id, items, seed0) {
+  const pile = $(`#${id}-pile`);
+  let seed = seed0; const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+  items.forEach(([kind, text], i) => {
+    const d = document.createElement("div");
+    d.className = `chip ${kind} a`;
+    d.textContent = text.split("|").join(String.fromCharCode(10));
+    d.style.whiteSpace = "pre";
     pile.appendChild(d);
-    d.style.left = (4 + rnd() * 72) + "%"; d.style.top = (2 + rnd() * (PORTRAIT ? 84 : 72)) + "%";
-    const r = (rnd() - 0.5) * 30;
-    tw(d, "s1", 0.1 + i * 0.13, 0.55, { y: -H * 0.9, r: r * 2, o: 1 }, { y: 0, r }, "back");
-    tw(d, "s1", 2.3, 0.4, {}, { o: 0.55 }, "out");
+    d.style.left = (3 + rnd() * 70) + "%"; d.style.top = (2 + rnd() * (PORTRAIT ? 80 : 68)) + "%";
+    const r = (rnd() - 0.5) * 28;
+    tw(d, id, 0.15 + i * 0.16, 0.5, { y: -H * 0.9, r: r * 2 }, { y: 0, r }, "back");
+    tw(d, id, 2.6, 0.4, {}, { o: 0.5 }, "out");
   });
-  tw("#s1-tag", "s1", 0, 0.45, { y: -120 * U, r: -8 }, { y: 0, r: -3 }, "back");
-  tw("#s1-stamp", "s1", 2.2, 0.45, { s: 3, o: 0, r: -18 }, { s: 1, o: 1, r: -6 }, "pop");
-  tw("#s1-stamp", "s1", 4.2, 0.6, {}, { s: 1.08 }, "inOut");
+  tw(`#${id}-tag`, id, 0, 0.45, { y: -120 * U, r: -8 }, { y: 0, r: -3 }, "back");
+  tw(`#${id}-stamp`, id, 2.5, 0.45, { s: 3, o: 0, r: -18 }, { s: 1, o: 1, r: -6 }, "pop");
 }
+pileScene("s1a", [
+  ["wa", "Ravi 8 till 6?"], ["wa", "Ali came at 9"], ["site", "SITE SHEET — EXPO|Ali   09:00–17:30|Ravi  08:?? –18:00|Sam   ———"],
+  ["call", "📞 Call site manager"], ["wa", "Hours for Fri??"], ["wa", "He left at 4"], ["call", "📞 No answer"],
+  ["wa", "Pls confirm hrs"], ["site", "SITE SHEET — DWTC|Mo    10:00–?|Ali   12:00–22:00"],
+], 7);
+pileScene("s1b", [
+  ["rc", "TAXI|42.00|— — —|TOTAL"], ["cash", "AED 500"], ["rc", "HARDWARE|18.50|— — —|TOTAL"], ["wa", "Bill is in my bag"],
+  ["rc", "CAFE|61.50|— — —|TOTAL"], ["cash", "AED 200"], ["wa", "Did I get 500 or 300?"], ["rc", "PRINT|35.00|— — —|TOTAL"],
+  ["rc", "FUEL|80.00|— — —|TOTAL"],
+], 31);
 
 // S2 — name card
 tw("#s2-card", "s2", 0, 0.6, { x: -W, r: -10 }, { x: 0, r: -2 }, "back");
@@ -555,6 +629,11 @@ tw("#s8-fixed", "s8", 6.5, 0.45, { s: 0, r: 20 }, { s: 1, r: -4 }, "pop");
 const yearEl = $("#s8-year"), dayEl = $("#s8-day");
 toggles.push({ el: { classList: { toggle: (_, on) => { yearEl.textContent = on ? "2023" : "2026"; } } }, cls: "", t0: S.s8.a + 1.6, t1: S.s8.a + 6.4 });
 toggles.push({ el: { classList: { toggle: (_, on) => { dayEl.textContent = on ? "9" : "16"; } } }, cls: "", t0: S.s8.a + 3.0, t1: S.s8.a + 6.4 });
+
+// S8b — trust rules stamp in one by one
+tw("#s8b-lock", "s8b", 0, 0.5, { s: 0, r: -40 }, { s: 1, r: -6 }, "pop");
+tw("#s8b-head", "s8b", 0.25, 0.5, { y: 80 * U, o: 0 }, { y: 0, o: 1 }, "back");
+[1, 2, 3].forEach((n, i) => tw(`#s8b-r${n}`, "s8b", 1.4 + i * 1.1, 0.45, { s: 2.2, o: 0, r: (i - 1) * 12 }, { s: 1, o: 1, r: (i - 1) * 2 }, "pop"));
 
 // S9 — bars to scale (60 min = 100%)
 tw("#s9-head", "s9", 0, 0.5, { y: -80 * U, o: 0 }, { y: 0, o: 1 }, "back");
