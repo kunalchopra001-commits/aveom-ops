@@ -3,7 +3,7 @@ import { defineSecret } from "firebase-functions/params";
 import { logger } from "firebase-functions";
 import { db, nowMs, storageAdmin } from "./firebase";
 import { bad, requireUser } from "./guards";
-import { COL, MAX_BILL_FILES, isIsoDate, todayDubai, type BillScan, type BillScanFields } from "./shared";
+import { COL, MAX_BILL_FILES, resolveBillDate, todayDubai, type BillScan, type BillScanFields } from "./shared";
 
 const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
 const MODEL = process.env.OCR_MODEL || "gpt-4o";
@@ -60,7 +60,7 @@ export const scanBill = onCall(
 
     const today = todayDubai();
     const amount = typeof raw.amount === "number" && raw.amount > 0 && raw.amount < 10_000_000 ? Math.round(raw.amount * 100) / 100 : null;
-    const date = typeof raw.date === "string" && isIsoDate(raw.date) && raw.date <= today ? raw.date : null;
+    const date = resolveBillDate(raw.date, raw.yearPrinted === true, today);
     const text = (v: unknown, max: number) =>
       typeof v === "string" && v.trim() ? v.trim().replace(/\s+/g, " ").slice(0, max) : null;
 
@@ -101,7 +101,14 @@ async function readBill(key: string, parts: unknown[]): Promise<Record<string, u
             properties: {
               amount: { type: ["number", "null"], description: "The final total actually paid, including VAT. Not a subtotal." },
               currency: { type: ["string", "null"], description: "ISO currency code of the total, e.g. AED." },
-              date: { type: ["string", "null"], description: "Purchase date as ISO yyyy-mm-dd." },
+              date: {
+                type: ["string", "null"],
+                description: "Purchase/transaction date as ISO yyyy-mm-dd. If no year is printed, use 2000 as the year.",
+              },
+              yearPrinted: {
+                type: "boolean",
+                description: "True only if the year is actually printed on the bill. False if only day and month are shown.",
+              },
               vendor: { type: ["string", "null"], description: "Shop or supplier name as printed." },
               description: {
                 type: ["string", "null"],
@@ -109,7 +116,7 @@ async function readBill(key: string, parts: unknown[]): Promise<Record<string, u
               },
               confidence: { type: "number", description: "Your confidence 0..1 that amount and date are correct." },
             },
-            required: ["amount", "currency", "date", "vendor", "description", "confidence"],
+            required: ["amount", "currency", "date", "yearPrinted", "vendor", "description", "confidence"],
           },
         },
       },
@@ -119,7 +126,9 @@ async function readBill(key: string, parts: unknown[]): Promise<Record<string, u
           content:
             "You read receipts and tax invoices from shops and suppliers in the UAE (English and/or Arabic). " +
             "Return the grand total paid, its currency, the purchase date (receipts may print dd/mm/yyyy — " +
-            "convert to yyyy-mm-dd), the vendor name, and a short description of the items. If several pages " +
+            "convert to yyyy-mm-dd), the vendor name, and a short description of the items. Bank and card app " +
+            "screenshots often show only day and month — never invent a year: set yearPrinted to false. " +
+            "If several pages " +
             "or photos are given they are the same bill. If a field is not legible return null. Never guess.",
         },
         { role: "user", content: [{ type: "text", text: "Read this bill:" }, ...parts] },
@@ -130,3 +139,4 @@ async function readBill(key: string, parts: unknown[]): Promise<Record<string, u
   const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
   return JSON.parse(json.choices?.[0]?.message?.content ?? "{}");
 }
+

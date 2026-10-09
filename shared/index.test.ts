@@ -11,6 +11,7 @@ import {
   isValidUsername,
   normalizeContactNumber,
   parseAmount,
+  resolveBillDate,
   roundMinutesToHalfHour,
   usernameToEmail,
   validateShiftInput,
@@ -161,4 +162,14 @@ test("statement: bills count in the fortnight they were submitted, not the recei
   assert.equal(bill.date, "2026-10-09");
   assert.equal(bill.receiptDate, "2023-09-17");
   assert.equal(st.lines[0].kind, "received"); // ordered by submission, after the payment
+});
+
+test("bill dates without a printed year use the latest past occurrence", () => {
+  assert.equal(resolveBillDate("2000-09-16", false, "2026-10-09"), "2026-09-16");
+  assert.equal(resolveBillDate("2000-12-20", false, "2026-10-09"), "2025-12-20"); // not in the future
+  assert.equal(resolveBillDate("2000-10-09", false, "2026-10-09"), "2026-10-09");
+  assert.equal(resolveBillDate("2000-02-29", false, "2026-10-09"), null); // no 29 Feb in 2025/2026
+  assert.equal(resolveBillDate("2023-09-16", true, "2026-10-09"), "2023-09-16"); // year printed: trust it
+  assert.equal(resolveBillDate("2027-01-01", true, "2026-10-09"), null); // future
+  assert.equal(resolveBillDate("16/09", false, "2026-10-09"), null);
 });

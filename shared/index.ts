@@ -538,6 +538,24 @@ export function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+/**
+ * The model's date, with the year fixed when the bill doesn't print one: use the most
+ * recent occurrence of that day and month that isn't in the future.
+ */
+export function resolveBillDate(value: unknown, yearPrinted: boolean, today: string): string | null {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  if (yearPrinted) return isIsoDate(value) && value <= today ? value : null;
+  const md = value.slice(5);
+  const year = Number(today.slice(0, 4));
+  for (const y of [year, year - 1]) {
+    const candidate = `${y}-${md}`;
+    // Date.parse accepts 2026-02-30, so check the day survives the round trip.
+    const ok = isIsoDate(candidate) && new Date(`${candidate}T00:00:00Z`).toISOString().slice(0, 10) === candidate;
+    if (ok && candidate <= today) return candidate;
+  }
+  return null;
+}
+
 /** Receipts older than this are flagged so an old bill isn't submitted by mistake. */
 export const OLD_RECEIPT_DAYS = 60;
 
