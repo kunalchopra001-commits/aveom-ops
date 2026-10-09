@@ -73,7 +73,7 @@ const ff = [
   "-y", "-f", "image2pipe", "-framerate", String(FPS), "-i", "-",
   ...(audio ? ["-ss", String(from), "-i", path.resolve(audio)] : []),
   "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
-  ...(audio ? ["-c:a", "aac", "-b:a", "192k", "-shortest"] : []),
+  ...(audio ? ["-af", "apad", "-c:a", "aac", "-b:a", "192k", "-t", String(to - from)] : []),
   file,
 ];
 const ffmpeg = spawn("ffmpeg", ff, { stdio: ["pipe", "ignore", "inherit"] });
