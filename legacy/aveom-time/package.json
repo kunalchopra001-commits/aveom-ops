@@ -1,0 +1,17 @@
+{
+  "name": "aveom-time",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm --prefix functions install",
+    "dev": "npm run dev --workspace @aveom/web",
+    "build": "npm run build --workspace @aveom/web && npm --prefix functions run build",
+    "typecheck": "npm run typecheck --workspace @aveom/web && npm --prefix functions run typecheck",
+    "emulators": "firebase emulators:start",
+    "seed": "npm --prefix functions run seed"
+  }
+}

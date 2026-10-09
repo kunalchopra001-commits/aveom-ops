@@ -1,0 +1,91 @@
+rules_version = '2';
+
+// AVEOM TIME — Firestore security rules
+// Roles live in the auth token as `role`: ops | founder | accountant | employee
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function roleOf() {
+      return request.auth.token.get('role', 'employee');
+    }
+    function isManager() {
+      return signedIn() && roleOf() in ['ops', 'founder', 'accountant'];
+    }
+    function isAdmin() {
+      return signedIn() && roleOf() in ['ops', 'founder'];
+    }
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function myEmployee() {
+      return get(/databases/$(database)/documents/employees/$(request.auth.uid)).data;
+    }
+
+    // ---- config (registration code etc.) — read by managers, written only by Cloud Functions
+    match /config/{doc} {
+      allow read: if isManager();
+      allow write: if false;
+    }
+
+    // ---- employees
+    match /employees/{uid} {
+      allow get: if isSelf(uid) || isManager();
+      allow list: if isManager();
+
+      // The employee may edit only their own profile fields, only while the
+      // profile is unlocked and their account approved, and may never touch
+      // status / lock / approval / role fields.
+      allow update: if isSelf(uid)
+        && resource.data.status == 'approved'
+        && resource.data.profileLocked == false
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+             'contactNumber', 'officialName', 'eidNumber', 'eidIssueDate',
+             'eidExpiryDate', 'eidFrontPath', 'eidBackPath', 'bank',
+             'profileComplete', 'profileLocked', 'unlockGrant', 'updatedAt'
+           ])
+        // employee may set profileLocked only from false -> true (completing the profile)
+        && (request.resource.data.profileLocked == false
+            || request.resource.data.profileLocked == true)
+        && (!('unlockGrant' in request.resource.data.diff(resource.data).affectedKeys())
+            || request.resource.data.unlockGrant.used == true);
+
+      allow create: if false;   // created by Cloud Function on approval
+      allow delete: if false;
+      allow update: if isAdmin();   // managers (ops/founder) may correct any field
+    }
+
+    // ---- projects
+    match /projects/{id} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---- shifts
+    match /shifts/{id} {
+      allow read: if isManager()
+        || (signedIn() && resource.data.employeeUid == request.auth.uid);
+
+      allow create: if signedIn()
+        && request.resource.data.employeeUid == request.auth.uid
+        && request.resource.data.id == id
+        && request.resource.data.wageRate == 25
+        && request.resource.data.deleted == false
+        && myEmployee().status == 'approved';
+
+      allow update, delete: if isAdmin();
+    }
+
+    // ---- audit log & report metadata — read by managers, written only by Cloud Functions
+    match /auditLog/{id} {
+      allow read: if isManager();
+      allow write: if false;
+    }
+    match /reports/{id} {
+      allow read: if isManager();
+      allow write: if false;
+    }
+  }
+}

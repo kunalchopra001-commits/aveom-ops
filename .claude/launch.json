@@ -1,0 +1,30 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--workspace",
+        "@aveom-ops/web"
+      ],
+      "port": 5173
+    },
+    {
+      "name": "web-emu",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--mode",
+        "emulators",
+        "--port",
+        "5174",
+        "--strictPort"
+      ],
+      "cwd": "apps/web",
+      "port": 5174
+    }
+  ]
+}

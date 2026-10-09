@@ -1,0 +1,105 @@
+rules_version = '2';
+
+// AVEOM OPS — Firestore security rules.
+// Claims in every ID token: role (admin | owner | accountant | member), shifts (bool), petty (bool).
+// Everything except a crew member's own shift is written by Cloud Functions only.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function role() {
+      return request.auth.token.get('role', 'member');
+    }
+    function isAdmin() {
+      return signedIn() && role() == 'admin';
+    }
+    function isViewer() {
+      return signedIn() && role() in ['admin', 'owner', 'accountant'];
+    }
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function me() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // ---- people
+    match /users/{uid} {
+      allow get: if isSelf(uid) || isViewer();
+      allow list: if isViewer();
+      allow write: if false;
+    }
+
+    // ---- projects (dropdown for shift entry + bills)
+    match /projects/{id} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // ---- shifts: crew create their own (offline outbox sync); edits go through functions
+    match /shifts/{id} {
+      allow read: if isViewer() || (signedIn() && resource.data.userUid == request.auth.uid);
+
+      allow create: if signedIn()
+        && request.auth.token.get('shifts', false) == true
+        && me().active == true
+        && validNewShift(id, request.resource.data);
+
+      allow update, delete: if false;
+    }
+
+    function validNewShift(id, d) {
+      return d.keys().hasOnly([
+               'id', 'userUid', 'userName', 'projectId', 'projectName', 'startAt', 'endAt',
+               'rawMinutes', 'totalHours', 'wageRate', 'wageAmount', 'flags', 'enteredAt',
+               'createdAt', 'deleted'
+             ])
+        && d.id == id
+        && d.userUid == request.auth.uid
+        && d.userName == me().displayName
+        && d.deleted == false
+        && d.flags is list
+        && d.startAt is int && d.endAt is int
+        && d.endAt > d.startAt
+        && d.endAt - d.startAt <= 72 * 3600000
+        // rawMinutes = round(duration in minutes), and totalHours = rawMinutes rounded UP to
+        // the next half hour. Checked with multiplication only: rules arithmetic on division
+        // doesn't match JavaScript's, which wrongly rejected shifts that need rounding up.
+        && d.rawMinutes is int
+        && d.rawMinutes * 60000 - 30000 <= d.endAt - d.startAt
+        && d.endAt - d.startAt < d.rawMinutes * 60000 + 30000
+        && d.totalHours * 2 == math.floor(d.totalHours * 2)
+        && d.totalHours * 60 >= d.rawMinutes
+        && d.totalHours * 60 < d.rawMinutes + 30
+        && d.wageRate == 25
+        && d.wageAmount == d.totalHours * 25
+        && exists(/databases/$(database)/documents/projects/$(d.projectId));
+    }
+
+    // ---- petty cash: read by viewers and the person concerned; written by functions only
+    match /pcTransfers/{id} {
+      allow read: if isViewer() || (signedIn() && resource.data.toUid == request.auth.uid);
+      allow write: if false;
+    }
+    match /pcBills/{id} {
+      allow read: if isViewer() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow write: if false;
+    }
+
+    // ---- logs: the Production Manager only
+    match /logs_access/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /logs_ack/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /logs_activity/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+  }
+}

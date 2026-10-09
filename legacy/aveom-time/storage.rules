@@ -1,0 +1,34 @@
+rules_version = '2';
+
+// AVEOM TIME — Cloud Storage rules
+// Emirates ID images live at  eid/{uid}/front  and  eid/{uid}/back
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function roleOf() {
+      return request.auth.token.get('role', 'employee');
+    }
+    function isManager() {
+      return signedIn() && roleOf() in ['ops', 'founder', 'accountant'];
+    }
+
+    match /eid/{uid}/{file} {
+      allow read: if signedIn() && (request.auth.uid == uid || isManager());
+
+      allow write: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.size < 8 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp|heic|heif)');
+
+      allow delete: if false;   // purged by Cloud Function only
+    }
+
+    match /reports/{file=**} {
+      allow read: if isManager();
+      allow write: if false;
+    }
+  }
+}

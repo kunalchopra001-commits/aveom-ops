@@ -1,0 +1,27 @@
+{
+  "name": "functions",
+  "version": "0.1.0",
+  "private": true,
+  "main": "lib/index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "serve": "npm run build && firebase emulators:start --only functions,firestore,auth,storage",
+    "seed": "node scripts/seed.mjs",
+    "bootstrap": "node scripts/bootstrap-prod.mjs",
+    "deploy": "firebase deploy --only functions"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.1",
+    "openai": "^4.77.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3"
+  }
+}

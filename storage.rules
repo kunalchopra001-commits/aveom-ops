@@ -1,0 +1,42 @@
+rules_version = '2';
+
+// AVEOM OPS — Cloud Storage rules.
+//   bills/{uid}/{billId}/{file}   receipts a petty cash holder uploads (photo or PDF)
+//   transfers/{transferId}/{file} optional proof of payment the owner attaches
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function role() {
+      return request.auth.token.get('role', 'member');
+    }
+    function isViewer() {
+      return signedIn() && role() in ['admin', 'owner', 'accountant'];
+    }
+    function okUpload() {
+      return request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*|application/pdf');
+    }
+
+    match /bills/{uid}/{billId}/{file} {
+      allow read: if isViewer() || (signedIn() && request.auth.uid == uid);
+      // New files only; a submitted bill's files are never overwritten.
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.auth.token.get('petty', false) == true
+        && okUpload();
+      allow update, delete: if false;
+    }
+
+    match /transfers/{transferId}/{file} {
+      allow read: if isViewer()
+        || (signedIn()
+            && firestore.get(/databases/(default)/documents/pcTransfers/$(transferId)).data.toUid
+               == request.auth.uid);
+      allow create: if signedIn() && role() == 'owner' && okUpload();
+      allow update, delete: if false;
+    }
+  }
+}
