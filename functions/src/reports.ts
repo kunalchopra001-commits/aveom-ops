@@ -27,6 +27,10 @@ import {
   type UserProfile,
 } from "./shared";
 
+// Callables are public endpoints that check sign-in themselves. Stated explicitly so a
+// redeploy over a half-created function also restores public access (it doesn't by default).
+const REPORT_OPTS = { memory: "512MiB" as const, invoker: "public" as const };
+
 /* ------------------------------------------------------------------ *
  * Helpers
  * ------------------------------------------------------------------ */
@@ -119,7 +123,7 @@ async function deliver(
  * Shifts
  * ------------------------------------------------------------------ */
 
-export const shiftReport = onCall({ memory: "512MiB" }, async (req) => {
+export const shiftReport = onCall(REPORT_OPTS, async (req) => {
   const caller = await requireViewer(req);
   const period = readPeriod(req.data);
   const gen = stamp(nowMs());
@@ -223,7 +227,7 @@ export const shiftReport = onCall({ memory: "512MiB" }, async (req) => {
  * Petty cash
  * ------------------------------------------------------------------ */
 
-export const pettyReport = onCall({ memory: "512MiB" }, async (req) => {
+export const pettyReport = onCall(REPORT_OPTS, async (req) => {
   const caller = await requireViewer(req);
   const period = readPeriod(req.data);
   const gen = stamp(nowMs());
@@ -386,7 +390,7 @@ function statusLabel(s: string): string {
  * Logs (Production Manager only) — one sheet per log
  * ------------------------------------------------------------------ */
 
-export const logsReport = onCall({ memory: "512MiB" }, async (req) => {
+export const logsReport = onCall(REPORT_OPTS, async (req) => {
   const caller = await requireAdmin(req);
   const period = readPeriod(req.data);
   const gen = stamp(nowMs());
