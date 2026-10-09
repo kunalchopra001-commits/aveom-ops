@@ -1,0 +1,13 @@
+{
+  "name": "aveom-ops-video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "stills": "node render.mjs --stills 3,7,12,16,20,28,34,43,49,58",
+    "render:16x9": "node render.mjs --ar 16x9",
+    "render:9x16": "node render.mjs --ar 9x16"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^23.10.0"
+  }
+}

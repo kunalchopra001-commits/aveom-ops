@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AVEOM OPS — capstone video</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@500;700;800&display=block">
+<style>
+/* Neo-brutalist system: pale-blue paper, pitch-black 4u outlines, hard 0-blur offset shadows.
+   Colour = meaning: saffron = human, blue = AI, red = wrong, green = fixed. */
+:root {
+  --u: 1px;                 /* set from JS: min(W,H)/1080 */
+  --bg: #dfeaff;
+  --paper: #ffffff;
+  --ink: #111111;
+  --saffron: #f2a93b;
+  --saffron-2: #ffd27a;
+  --blue: #5294ff;
+  --blue-2: #bcd4ff;
+  --red: #ff4d50;
+  --green: #05d67a;
+  --line: calc(var(--u) * 4);
+  --sh: calc(var(--u) * 8) calc(var(--u) * 8) 0 var(--ink);
+  --sh-sm: calc(var(--u) * 5) calc(var(--u) * 5) 0 var(--ink);
+  --display: "Bricolage Grotesque", "Arial Black", sans-serif;
+  --mono: "JetBrains Mono", Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #000; }
+#stage {
+  position: relative; overflow: hidden; background: var(--bg); color: var(--ink);
+  font-family: var(--display); font-weight: 700;
+  background-image:
+    linear-gradient(rgba(17,17,17,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(17,17,17,.06) 1px, transparent 1px);
+  background-size: calc(var(--u) * 60) calc(var(--u) * 60);
+}
+.scene { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: calc(var(--u) * 40); padding: calc(var(--u) * 70); visibility: hidden; }
+.scene.on { visibility: visible; }
+.a { will-change: transform, opacity; }
+
+/* primitives */
+.box { background: var(--paper); border: var(--line) solid var(--ink); border-radius: calc(var(--u) * 10); box-shadow: var(--sh); }
+.tag { display: inline-block; font-family: var(--mono); font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  font-size: calc(var(--u) * 30); padding: calc(var(--u) * 10) calc(var(--u) * 20); border: var(--line) solid var(--ink);
+  border-radius: calc(var(--u) * 8); background: var(--saffron-2); box-shadow: var(--sh-sm); }
+.h { font-weight: 800; letter-spacing: -0.035em; line-height: .95; margin: 0; text-align: center; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.row { display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 90); }
+.portrait .row { gap: calc(var(--u) * 70); }
+.portrait .row.stack-p { flex-direction: column; }
+
+/* S1: chaos pile */
+#s1-pile { position: absolute; inset: 14% 6% 6% 6%; }
+.portrait #s1-pile { inset: 12% 4% 8% 4%; }
+.chip { position: absolute; border: var(--line) solid var(--ink); box-shadow: var(--sh-sm); font-size: calc(var(--u) * 36);
+  padding: calc(var(--u) * 18) calc(var(--u) * 26); border-radius: calc(var(--u) * 22); font-weight: 700; white-space: nowrap; }
+.chip.wa { background: #b8f5c9; border-bottom-left-radius: calc(var(--u) * 2); }
+.chip.rc { background: var(--paper); border-radius: calc(var(--u) * 4); font-family: var(--mono); font-size: calc(var(--u) * 26);
+  width: calc(var(--u) * 220); height: calc(var(--u) * 270); padding: calc(var(--u) * 14); line-height: 1.5;
+  background-image: repeating-linear-gradient(transparent 0 calc(var(--u)*28), rgba(0,0,0,.18) calc(var(--u)*28) calc(var(--u)*30)); }
+#s1-stamp { position: absolute; z-index: 5; display: flex; align-items: center; gap: calc(var(--u) * 24); background: var(--red); color: #fff;
+  font-size: calc(var(--u) * 150); padding: calc(var(--u) * 20) calc(var(--u) * 50); border: calc(var(--u)*6) solid var(--ink);
+  box-shadow: calc(var(--u)*14) calc(var(--u)*14) 0 var(--ink); border-radius: calc(var(--u) * 14); font-weight: 800; letter-spacing: -0.04em; }
+#s1-stamp svg { width: calc(var(--u) * 130); height: calc(var(--u) * 130); }
+
+/* S2: name card */
+#s2-card { padding: calc(var(--u) * 50) calc(var(--u) * 70); display: flex; flex-direction: column; gap: calc(var(--u) * 16); background: var(--saffron); }
+#s2-card .h { font-size: calc(var(--u) * 170); text-align: left; }
+#s2-card .sub { font-family: var(--mono); font-weight: 800; font-size: calc(var(--u) * 44); text-transform: uppercase; letter-spacing: .04em; }
+#s2-sticker { background: var(--blue); color: #fff; }
+
+/* S3: question */
+.block { font-size: calc(var(--u) * 140); font-weight: 800; padding: calc(var(--u) * 34) calc(var(--u) * 54); letter-spacing: -0.03em; }
+.block.human { background: var(--saffron); }
+.block.ai { background: var(--blue); color: #fff; }
+.op { font-size: calc(var(--u) * 160); font-weight: 800; }
+#s3-q { font-size: calc(var(--u) * 140); max-width: calc(var(--u) * 1700); }
+.portrait #s3-q { font-size: calc(var(--u) * 120); max-width: calc(var(--u) * 940); }
+.hl { background: var(--ink); color: var(--saffron-2); padding: 0 calc(var(--u) * 16); border-radius: calc(var(--u) * 8); }
+
+/* S4: logo */
+#s4-logo { display: flex; align-items: center; gap: calc(var(--u) * 40); }
+#s4-tile { width: calc(var(--u) * 300); height: calc(var(--u) * 300); border-radius: calc(var(--u) * 44); background: #1b1d22;
+  border: calc(var(--u)*6) solid var(--ink); box-shadow: calc(var(--u)*14) calc(var(--u)*14) 0 var(--ink); display: grid; place-items: center; }
+#s4-tile svg { width: 72%; }
+#s4-word { font-size: calc(var(--u) * 220); font-weight: 800; letter-spacing: -0.04em; line-height: .9; }
+#s4-word b { color: var(--saffron); -webkit-text-stroke: calc(var(--u) * 5) var(--ink); paint-order: stroke fill; }
+.portrait #s4-logo { flex-direction: column; }
+#s4-sub { font-family: var(--mono); font-weight: 800; font-size: calc(var(--u) * 44); text-transform: uppercase; }
+
+/* phone */
+.phone { width: calc(var(--u) * 520); height: calc(var(--u) * 860); border-radius: calc(var(--u) * 60); background: var(--ink);
+  padding: calc(var(--u) * 18); box-shadow: calc(var(--u)*16) calc(var(--u)*16) 0 rgba(17,17,17,.9); position: relative; }
+.screen { width: 100%; height: 100%; border-radius: calc(var(--u) * 44); background: #f6f4ef; overflow: hidden; position: relative;
+  display: flex; flex-direction: column; gap: calc(var(--u) * 18); padding: calc(var(--u) * 46) calc(var(--u) * 30); }
+.screen .title { font-size: calc(var(--u) * 46); font-weight: 800; letter-spacing: -0.03em; }
+.field { border: calc(var(--u)*3.5) solid var(--ink); border-radius: calc(var(--u) * 12); background: #fff; padding: calc(var(--u) * 14) calc(var(--u) * 18);
+  display: flex; flex-direction: column; gap: calc(var(--u) * 4); box-shadow: calc(var(--u)*4) calc(var(--u)*4) 0 var(--ink); }
+.field .k { font-family: var(--mono); font-size: calc(var(--u) * 19); font-weight: 800; text-transform: uppercase; color: #555; }
+.field .v { font-size: calc(var(--u) * 34); font-weight: 800; min-height: calc(var(--u) * 40); letter-spacing: -0.02em; }
+.field.ai { background: var(--blue-2); }
+.btn { border: calc(var(--u)*4) solid var(--ink); border-radius: calc(var(--u) * 12); background: var(--saffron); text-align: center;
+  font-size: calc(var(--u) * 38); font-weight: 800; padding: calc(var(--u) * 18); box-shadow: calc(var(--u)*6) calc(var(--u)*6) 0 var(--ink); }
+.total { font-family: var(--mono); font-weight: 800; font-size: calc(var(--u) * 34); border: calc(var(--u)*3.5) dashed var(--ink);
+  border-radius: calc(var(--u) * 12); padding: calc(var(--u) * 14); text-align: center; background: #fff; }
+.badge { position: absolute; display: flex; align-items: center; gap: calc(var(--u) * 14); font-family: var(--mono); font-weight: 800;
+  font-size: calc(var(--u) * 30); text-transform: uppercase; padding: calc(var(--u) * 16) calc(var(--u) * 24);
+  border: var(--line) solid var(--ink); border-radius: calc(var(--u) * 12); box-shadow: var(--sh); white-space: nowrap; }
+.badge svg { width: calc(var(--u) * 44); height: calc(var(--u) * 44); }
+.badge.red { background: var(--red); color: #fff; }
+.badge.green { background: var(--green); }
+.badge.blue { background: var(--blue); color: #fff; }
+.badge.yellow { background: #ffe14d; }
+.side { display: flex; flex-direction: column; gap: calc(var(--u) * 34); max-width: calc(var(--u) * 900); }
+.side .tag { align-self: flex-start; font-size: calc(var(--u) * 38); }
+.portrait .side .tag { align-self: center; }
+.side .h { text-align: left; font-size: calc(var(--u) * 132); }
+.portrait .side { align-items: center; }
+.portrait .side .h { text-align: center; font-size: calc(var(--u) * 110); }
+
+/* S6 receipt + scan beam */
+.receipt { position: absolute; left: 50%; width: calc(var(--u) * 300); background: #fff; border: var(--line) solid var(--ink); box-shadow: var(--sh);
+  font-family: var(--mono); font-size: calc(var(--u) * 20); font-weight: 700; padding: calc(var(--u) * 20); line-height: 1.55; z-index: 3; }
+.receipt .big { font-size: calc(var(--u) * 34); font-weight: 800; }
+.beam { position: absolute; left: 0; right: 0; height: calc(var(--u) * 10); background: var(--blue); box-shadow: 0 0 0 calc(var(--u)*3) var(--ink); z-index: 4; }
+
+/* S7 split */
+#s7 { flex-direction: row; gap: 0; padding: 0; }
+.portrait #s7 { flex-direction: column; }
+.half { flex: 1; align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 30);
+  border: calc(var(--u)*6) solid var(--ink); }
+.half.ai { background: var(--blue); color: #fff; }
+.half.hu { background: var(--saffron); }
+.half svg { width: calc(var(--u) * 210); height: calc(var(--u) * 210); }
+.half .who { font-family: var(--mono); font-size: calc(var(--u) * 40); font-weight: 800; letter-spacing: .1em; }
+.half .what { font-size: calc(var(--u) * 150); font-weight: 800; letter-spacing: -0.04em; line-height: .9; }
+.half.ai .what { -webkit-text-stroke: calc(var(--u)*5) var(--ink); paint-order: stroke fill; }
+
+/* S8 fail differently */
+#s8-card { width: calc(var(--u) * 1300); padding: calc(var(--u) * 40); display: flex; flex-direction: column; gap: calc(var(--u) * 26); position: relative; }
+.portrait #s8-card { width: calc(var(--u) * 900); }
+.drow { display: flex; align-items: center; gap: calc(var(--u) * 24); }
+.drow .k { font-family: var(--mono); font-weight: 800; font-size: calc(var(--u) * 36); width: calc(var(--u) * 220); text-transform: uppercase; }
+.dval { font-family: var(--mono); font-weight: 800; font-size: calc(var(--u) * 84); border: var(--line) solid var(--ink); border-radius: calc(var(--u) * 10);
+  padding: calc(var(--u) * 6) calc(var(--u) * 24); background: #fff; min-width: calc(var(--u) * 170); text-align: center; }
+.dval.bad { background: var(--red); color: #fff; }
+.dval.good { background: var(--green); }
+.who-tag { font-family: var(--mono); font-weight: 800; font-size: calc(var(--u) * 32); padding: calc(var(--u) * 8) calc(var(--u) * 14);
+  border: calc(var(--u)*3.5) solid var(--ink); border-radius: calc(var(--u) * 8); box-shadow: var(--sh-sm); text-transform: uppercase; }
+.who-tag.ai { background: var(--blue); color: #fff; }
+.who-tag.hu { background: var(--saffron); }
+#s8-head { font-size: calc(var(--u) * 120); }
+
+/* S9 bars */
+#s9-charts { display: flex; gap: calc(var(--u) * 60); }
+.portrait #s9-charts { flex-direction: column; gap: calc(var(--u) * 50); }
+.chart { width: calc(var(--u) * 820); padding: calc(var(--u) * 36); display: flex; flex-direction: column; gap: calc(var(--u) * 20); }
+.portrait .chart { width: calc(var(--u) * 900); }
+.chart .t { font-size: calc(var(--u) * 62); font-weight: 800; letter-spacing: -0.03em; }
+.bar { display: grid; grid-template-columns: calc(var(--u) * 150) 1fr; align-items: center; gap: calc(var(--u) * 18); font-family: var(--mono); font-weight: 800; font-size: calc(var(--u) * 26); }
+.track { height: calc(var(--u) * 96); border: var(--line) solid var(--ink); border-radius: calc(var(--u) * 10); background: #fff; overflow: hidden; }
+.fill { height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: calc(var(--u) * 16); font-size: calc(var(--u) * 42);
+  border-right: var(--line) solid var(--ink); white-space: nowrap; }
+.fill.before { background: #c9c3b6; }
+.fill.after { background: var(--saffron); }
+#s9-head { font-size: calc(var(--u) * 130); }
+
+/* S10 ledger + end */
+#s10-ledger { width: calc(var(--u) * 1400); overflow: hidden; }
+.portrait #s10-ledger { width: calc(var(--u) * 940); }
+.lrow { display: grid; grid-template-columns: 1.2fr 1fr 1fr; border-top: var(--line) solid var(--ink); font-family: var(--mono); font-weight: 800; font-size: calc(var(--u) * 44); }
+.lrow:first-child { border-top: 0; }
+.lrow > div { padding: calc(var(--u) * 20) calc(var(--u) * 24); border-left: var(--line) solid var(--ink); }
+.lrow > div:first-child { border-left: 0; }
+.lrow.head > div { font-size: calc(var(--u) * 34); text-transform: uppercase; }
+.lrow.head .c-ai { background: var(--blue); color: #fff; }
+.lrow.head .c-hu { background: var(--saffron); }
+.lrow .chg { background: #ffe14d; }
+#s10-end { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 36);
+  background: var(--saffron); border-top: calc(var(--u)*8) solid var(--ink); }
+#s10-end .url { font-family: var(--mono); font-weight: 800; font-size: calc(var(--u) * 44); background: #fff; padding: calc(var(--u) * 14) calc(var(--u) * 30);
+  border: var(--line) solid var(--ink); border-radius: calc(var(--u) * 10); box-shadow: var(--sh); }
+
+
+/* portrait: more height, same width — scale the hero objects up */
+.portrait .scene { gap: calc(var(--u) * 60); }
+.portrait .phone { zoom: 1.32; }
+.portrait #s3 .row { zoom: 1.15; flex-direction: column; gap: calc(var(--u) * 30); }
+.portrait #s3-q { font-size: calc(var(--u) * 150); }
+.portrait #s1-stamp { font-size: calc(var(--u) * 170); }
+.portrait .chip { zoom: 1.15; }
+.portrait #s2-card .h { font-size: calc(var(--u) * 190); }
+.portrait #s8-head { font-size: calc(var(--u) * 150); }
+.portrait #s8-card { width: calc(var(--u) * 940); gap: calc(var(--u) * 40); padding: calc(var(--u) * 50) calc(var(--u) * 36); }
+.portrait .dval { font-size: calc(var(--u) * 96); }
+.portrait .drow { flex-wrap: wrap; gap: calc(var(--u) * 18); }
+.portrait .drow .k { width: calc(var(--u) * 190); }
+.portrait #s9-head { font-size: calc(var(--u) * 150); }
+.portrait .chart { width: calc(var(--u) * 940); padding: calc(var(--u) * 44); gap: calc(var(--u) * 28); }
+.portrait .chart .t { font-size: calc(var(--u) * 72); }
+.portrait .track { height: calc(var(--u) * 120); }
+.portrait .bar { font-size: calc(var(--u) * 32); grid-template-columns: calc(var(--u) * 170) 1fr; }
+.portrait .fill { font-size: calc(var(--u) * 50); }
+.portrait #s10-ledger { width: calc(var(--u) * 940); }
+.portrait .lrow { font-size: calc(var(--u) * 46); grid-template-columns: 1fr 1fr 1fr; }
+.portrait .lrow > div { padding: calc(var(--u) * 30) calc(var(--u) * 20); }
+.portrait #s10-tag { font-size: calc(var(--u) * 52) !important; }
+.portrait #s10-logo { flex-direction: column; zoom: 1.35; }
+.portrait #s10-end .url { zoom: 1.3; }
+.portrait #s4-logo { zoom: 1.15; }
+
+/* scene wipe */
+#wipe { position: absolute; inset: 0; z-index: 50; display: flex; pointer-events: none; }
+#wipe div { flex: 1; border-right: var(--line) solid var(--ink); }
+#wipe div:nth-child(1) { background: var(--saffron); }
+#wipe div:nth-child(2) { background: var(--blue); }
+#wipe div:nth-child(3) { background: var(--ink); }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- S1 · 0–5 s · "Every pay period, I lost two hours…" -->
+  <section class="scene" id="s1">
+    <span class="tag a" id="s1-tag" style="position:absolute;top:7%;z-index:6;font-size:calc(var(--u)*40)">Every pay period</span>
+    <div id="s1-pile"></div>
+    <div id="s1-stamp" class="a">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      2 HRS
+    </div>
+  </section>
+
+  <!-- S2 · name card -->
+  <section class="scene" id="s2">
+    <div class="box a" id="s2-card">
+      <div class="h">Kunal Chopra</div>
+      <div class="sub">Production Manager · AVEOM, Dubai</div>
+    </div>
+    <span class="tag a" id="s2-sticker" style="font-size:calc(var(--u)*40)">100x · C7 Capstone</span>
+  </section>
+
+  <!-- S3 · the question -->
+  <section class="scene" id="s3">
+    <div class="row">
+      <div class="box block human a" id="s3-h">PERSON</div>
+      <div class="op a" id="s3-plus">+</div>
+      <div class="box block ai a" id="s3-ai">AI</div>
+    </div>
+    <p class="h a" id="s3-q">beat <span class="hl">either one</span> alone?</p>
+  </section>
+
+  <!-- S4 · logo -->
+  <section class="scene" id="s4">
+    <div id="s4-logo">
+      <div id="s4-tile" class="a"><svg viewBox="0 0 48 48"><path d="M12 35 L24 11 L36 35" fill="none" stroke="#e9a521" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.5 27 H30.5" stroke="#f3f1ec" stroke-width="3.8" stroke-linecap="round"/></svg></div>
+      <div id="s4-word" class="a">AVEOM<br><b>OPS</b></div>
+    </div>
+    <span class="tag a" id="s4-sub">Shifts + petty cash · one app</span>
+  </section>
+
+  <!-- S5 · shifts offline -->
+  <section class="scene" id="s5">
+    <div class="row stack-p">
+      <div class="side">
+        <span class="tag a" id="s5-tag">Crew · shifts</span>
+        <p class="h a" id="s5-h">Logged on site.<br>Even offline.</p>
+      </div>
+      <div class="phone a" id="s5-phone">
+        <div class="screen">
+          <div class="title">Log a shift</div>
+          <div class="field"><span class="k">Project</span><span class="v" id="s5-v1" data-text="Expo City Gala"></span></div>
+          <div class="field"><span class="k">Start</span><span class="v mono" id="s5-v2" data-text="09 Oct · 08:00"></span></div>
+          <div class="field"><span class="k">End</span><span class="v mono" id="s5-v3" data-text="09 Oct · 17:00"></span></div>
+          <div class="total a" id="s5-total">9.00 h · AED 225.00</div>
+          <div class="btn a" id="s5-btn">Save shift</div>
+        </div>
+        <div class="badge red a" id="s5-nosig" style="top:calc(var(--u)*-40); right:calc(var(--u)*-90)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M4 20h2M9 20v-4M14 20v-8M19 20V6"/><path d="M3 3l18 18"/></svg>No signal
+        </div>
+        <div class="badge green a" id="s5-saved" style="bottom:calc(var(--u)*90); left:calc(var(--u)*-120)">✓ Saved · syncs later</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S6 · bill scan -->
+  <section class="scene" id="s6">
+    <div class="row stack-p">
+      <div class="side">
+        <span class="tag a" id="s6-tag">Petty cash · bills</span>
+        <p class="h a" id="s6-h">Snap a bill.<br>AI fills it in.</p>
+      </div>
+      <div class="phone a" id="s6-phone">
+        <div class="screen">
+          <div class="title">Add a bill</div>
+          <div class="field ai a" id="s6-f1"><span class="k">Amount · read by AI</span><span class="v mono" id="s6-v1" data-text="AED 61.50"></span></div>
+          <div class="field ai a" id="s6-f2"><span class="k">Date · read by AI</span><span class="v mono" id="s6-v2" data-text="16 Sep 2026"></span></div>
+          <div class="field ai a" id="s6-f3"><span class="k">Shop · read by AI</span><span class="v" id="s6-v3" data-text="Pulutan House"></span></div>
+          <div class="field ai a" id="s6-f4"><span class="k">For · read by AI</span><span class="v" id="s6-v4" data-text="Restaurant meal"></span></div>
+          <div class="btn a" id="s6-btn">Submit bill</div>
+        </div>
+        <div class="receipt a" id="s6-receipt" style="top:calc(var(--u)*170); margin-left:calc(var(--u)*-150)">
+          <div class="big">PULUTAN HOUSE</div>16 SEPTEMBER<br>1x MEAL ..... 55.00<br>VAT 5% ...... 2.75<br>SVC ......... 3.75<br><div class="big">TOTAL 61.50</div>
+          <div class="beam a" id="s6-beam" style="top:0"></div>
+        </div>
+        <div class="badge blue a" id="s6-ai" style="top:calc(var(--u)*-40); right:calc(var(--u)*-110)">AI reading…</div>
+        <div class="badge yellow a" id="s6-check" style="bottom:calc(var(--u)*-36); left:calc(var(--u)*-170)">Person checks ✓</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S7 · roles -->
+  <section class="scene" id="s7">
+    <div class="half ai a" id="s7-ai">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M1.5 12S5.5 4.5 12 4.5 22.5 12 22.5 12 18.5 19.5 12 19.5 1.5 12 1.5 12z" stroke="#111" stroke-width="3.6"/><path d="M1.5 12S5.5 4.5 12 4.5 22.5 12 22.5 12 18.5 19.5 12 19.5 1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3.6" fill="#111"/></svg>
+      <span class="who">THE AI</span><span class="what">READS</span>
+    </div>
+    <div class="half hu a" id="s7-hu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" fill="#fff"/><path d="m7 12.5 3.2 3.2L17 9"/></svg>
+      <span class="who">THE HUMAN</span><span class="what">JUDGES</span>
+    </div>
+  </section>
+
+  <!-- S8 · they fail differently -->
+  <section class="scene" id="s8">
+    <p class="h a" id="s8-head">They fail <span class="hl">differently</span>.</p>
+    <div class="box a" id="s8-card">
+      <div class="drow"><span class="k">Day</span><span class="dval mono" id="s8-day">16</span><span class="who-tag hu a" id="s8-dtag">Person typed 9</span></div>
+      <div class="drow"><span class="k">Month</span><span class="dval mono">SEP</span></div>
+      <div class="drow"><span class="k">Year</span><span class="dval mono" id="s8-year">2026</span><span class="who-tag ai a" id="s8-ytag">AI guessed 2023</span></div>
+      <div class="badge yellow a" id="s8-warn" style="right:calc(var(--u)*-50); top:38%; font-size:calc(var(--u)*38)">⚠ 1,126 days old?</div>
+      <div class="badge green a" id="s8-fixed" style="right:calc(var(--u)*-30); bottom:calc(var(--u)*-50); font-size:calc(var(--u)*38)">✓ Caught · design fixed</div>
+    </div>
+  </section>
+
+  <!-- S9 · time saved -->
+  <section class="scene" id="s9">
+    <p class="h a" id="s9-head">Under <span class="hl">half</span> the time.</p>
+    <div id="s9-charts">
+      <div class="box chart a" id="s9-c1">
+        <div class="t">15 petty cash bills</div>
+        <div class="bar"><span>BEFORE</span><div class="track"><div class="fill before" id="s9-b1">60 MIN</div></div></div>
+        <div class="bar"><span>NOW</span><div class="track"><div class="fill after" id="s9-a1">&lt;30</div></div></div>
+      </div>
+      <div class="box chart a" id="s9-c2">
+        <div class="t">30 crew shifts</div>
+        <div class="bar"><span>BEFORE</span><div class="track"><div class="fill before" id="s9-b2">60 MIN</div></div></div>
+        <div class="bar"><span>NOW</span><div class="track"><div class="fill after" id="s9-a2">&lt;30</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S10 · evidence + end card -->
+  <section class="scene" id="s10">
+    <span class="tag a" id="s10-tag" style="font-size:calc(var(--u)*44)">Every bill records</span>
+    <div class="box a" id="s10-ledger">
+      <div class="lrow head"><div>Field</div><div class="c-ai">AI read</div><div class="c-hu">Human kept</div></div>
+      <div class="lrow a" id="s10-r1"><div>Amount</div><div>61.50</div><div>61.50</div></div>
+      <div class="lrow a" id="s10-r2"><div>Shop</div><div>Pulutan</div><div>Pulutan</div></div>
+      <div class="lrow a" id="s10-r3"><div>Date</div><div>16 Sep</div><div class="chg">09 Sep</div></div>
+    </div>
+    <div id="s10-end" class="a">
+      <div id="s10-logo" style="display:flex;align-items:center;gap:calc(var(--u)*30)">
+        <div style="width:calc(var(--u)*150);height:calc(var(--u)*150);border-radius:calc(var(--u)*30);background:#1b1d22;border:calc(var(--u)*6) solid #111;box-shadow:calc(var(--u)*10) calc(var(--u)*10) 0 #111;display:grid;place-items:center"><svg viewBox="0 0 48 48" style="width:72%"><path d="M12 35 L24 11 L36 35" fill="none" stroke="#e9a521" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.5 27 H30.5" stroke="#f3f1ec" stroke-width="3.8" stroke-linecap="round"/></svg></div>
+        <div style="font-size:calc(var(--u)*120);font-weight:800;letter-spacing:-0.04em">AVEOM OPS</div>
+      </div>
+      <div class="url">aveom-ops.web.app</div>
+      <span class="tag" style="background:#fff">100xEngineers · C7 Capstone · Kunal Chopra</span>
+    </div>
+  </section>
+
+  <div id="wipe" class="a"><div></div><div></div><div></div></div>
+</div>
+
+<script>
+/* ---------- setup ---------- */
+const params = new URLSearchParams(location.search);
+const PORTRAIT = params.get("ar") === "9x16";
+const W = PORTRAIT ? 1080 : 1920, H = PORTRAIT ? 1920 : 1080;
+const stage = document.getElementById("stage");
+stage.style.width = W + "px"; stage.style.height = H + "px";
+document.documentElement.style.setProperty("--u", Math.min(W, H) / 1080 + "px");
+if (PORTRAIT) stage.classList.add("portrait");
+
+/* Scene timings (seconds). Re-time these to the final voiceover. */
+const SCENES = [
+  ["s1", 0, 5], ["s2", 5, 9.5], ["s3", 9.5, 14], ["s4", 14, 17], ["s5", 17, 22],
+  ["s6", 22, 32], ["s7", 32, 36], ["s8", 36, 45], ["s9", 45, 52], ["s10", 52, 60],
+];
+const DURATION = 60;
+const S = Object.fromEntries(SCENES.map(([id, a, b]) => [id, { a, b }]));
+
+/* ---------- easing ---------- */
+const E = {
+  lin: (x) => x,
+  out: (x) => 1 - Math.pow(1 - x, 3),
+  inOut: (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2),
+  back: (x) => { const c = 1.9, d = c + 1; return 1 + d * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); },
+  pop: (x) => { const c = 2.6, d = c + 1; return 1 + d * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); },
+  in: (x) => x * x * x,
+};
+
+/* ---------- timeline ---------- */
+const tracks = new Map(); // el -> [{t0,t1,from,to,ease}]
+const toggles = [];       // {el, cls, t0, t1}
+const $ = (s) => (typeof s === "string" ? document.querySelector(s) : s);
+function tw(sel, scene, t, dur, from, to, ease = "back") {
+  const el = $(sel), a = S[scene].a;
+  if (!tracks.has(el)) tracks.set(el, []);
+  tracks.get(el).push({ t0: a + t, t1: a + t + dur, from, to, ease: E[ease] });
+}
+function cls(sel, scene, t, name, until) {
+  toggles.push({ el: $(sel), cls: name, t0: S[scene].a + t, t1: until == null ? Infinity : S[scene].a + until });
+}
+const lerp = (a, b, p) => a + (b - a) * p;
+const REST = { x: 0, y: 0, r: 0, s: 1, sx: 1, o: 1, press: 0 };
+function apply(el, v) {
+  const tf = [];
+  if ("x" in v || "y" in v) tf.push(`translate(${v.x || 0}px, ${v.y || 0}px)`);
+  if ("s" in v) tf.push(`scale(${v.s})`);
+  if ("sx" in v) tf.push(`scaleX(${v.sx})`);
+  if ("r" in v) tf.push(`rotate(${v.r}deg)`);
+  el.style.transform = tf.join(" ");
+  if ("o" in v) el.style.opacity = v.o;
+  if ("w" in v) el.style.width = v.w + "%";
+  if ("type" in v) { const full = el.dataset.text || ""; el.textContent = full.slice(0, Math.round(v.type * full.length)); }
+  if ("press" in v) { el.style.transform = `translate(${v.press * 6}px, ${v.press * 6}px)`; el.style.boxShadow = `${(1 - v.press) * 6}px ${(1 - v.press) * 6}px 0 #111`; }
+  if ("top" in v) el.style.top = v.top + "%";
+  if ("clipx" in v) el.style.clipPath = `inset(0 ${100 - v.clipx}% 0 0)`;
+}
+function render(t) {
+  for (const [id, { a, b }] of Object.entries(S)) document.getElementById(id).classList.toggle("on", t >= a && t < b);
+  for (const [el, list] of tracks) {
+    const v = {};
+    const sorted = list.slice().sort((p, q) => p.t0 - q.t0);
+    for (const k of new Set(sorted.flatMap((x) => Object.keys(x.to)))) {
+      const mine = sorted.filter((x) => k in x.to);
+      // Before its first tween an element rests at its natural value, not at that tween's target.
+      let val = k in mine[0].from ? mine[0].from[k] : (k in REST ? REST[k] : mine[0].to[k]);
+      for (const x of mine) {
+        if (t < x.t0) break;
+        const p = Math.min(1, (t - x.t0) / Math.max(1e-6, x.t1 - x.t0));
+        const f = k in x.from ? x.from[k] : val;
+        val = lerp(f, x.to[k], x.ease(p));
+      }
+      v[k] = val;
+    }
+    apply(el, v);
+  }
+  for (const g of toggles) g.el.classList.toggle(g.cls, t >= g.t0 && t < g.t1);
+}
+
+/* ---------- scene choreography ---------- */
+const U = Math.min(W, H) / 1080;
+// wipes between scenes: three bars sweep across, quick
+{
+  const wipe = $("#wipe");
+  if (!tracks.has(wipe)) tracks.set(wipe, []);
+  const list = tracks.get(wipe);
+  list.push({ t0: -1, t1: -0.9, from: { x: -W * 1.2 }, to: { x: -W * 1.2 }, ease: E.lin });
+  for (const [id, a] of SCENES.slice(1)) {
+    if (["s2", "s4", "s7", "s9"].includes(id)) {
+      list.push({ t0: a - 0.28, t1: a, from: { x: -W * 1.2 }, to: { x: 0 }, ease: E.in });
+      list.push({ t0: a, t1: a + 0.3, from: { x: 0 }, to: { x: W * 1.2 }, ease: E.out });
+    }
+  }
+}
+
+// S1 — chaos pile + stamp
+{
+  const pile = $("#s1-pile");
+  const msgs = ["Site: Ravi 8-6?", "Ali came 9", "Hours for Fri??", "Who was at Expo", "Sent sheet 📄", "He left at 4", "Pls confirm hrs", "Van run 2h"];
+  let seed = 7; const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+  const items = [];
+  msgs.forEach((m, i) => { const d = document.createElement("div"); d.className = "chip wa a"; d.textContent = m; items.push(d); });
+  ["TAXI\n42.00", "HARDWARE\n18.50", "CAFE\n61.50", "PRINT\n35.00", "FUEL\n80.00"].forEach((m) => {
+    const d = document.createElement("div"); d.className = "chip rc a"; d.innerText = m + "\n— — —\nVAT ...\nTOTAL"; items.push(d);
+  });
+  items.forEach((d, i) => {
+    pile.appendChild(d);
+    d.style.left = (4 + rnd() * 72) + "%"; d.style.top = (2 + rnd() * (PORTRAIT ? 84 : 72)) + "%";
+    const r = (rnd() - 0.5) * 30;
+    tw(d, "s1", 0.1 + i * 0.13, 0.55, { y: -H * 0.9, r: r * 2, o: 1 }, { y: 0, r }, "back");
+    tw(d, "s1", 2.3, 0.4, {}, { o: 0.55 }, "out");
+  });
+  tw("#s1-tag", "s1", 0, 0.45, { y: -120 * U, r: -8 }, { y: 0, r: -3 }, "back");
+  tw("#s1-stamp", "s1", 2.2, 0.45, { s: 3, o: 0, r: -18 }, { s: 1, o: 1, r: -6 }, "pop");
+  tw("#s1-stamp", "s1", 4.2, 0.6, {}, { s: 1.08 }, "inOut");
+}
+
+// S2 — name card
+tw("#s2-card", "s2", 0, 0.6, { x: -W, r: -10 }, { x: 0, r: -2 }, "back");
+tw("#s2-sticker", "s2", 0.55, 0.45, { s: 0, r: 30 }, { s: 1, r: 4 }, "pop");
+tw("#s2-card", "s2", 3.6, 0.8, {}, { y: -10 * U }, "inOut");
+
+// S3 — person + AI = ?
+tw("#s3-h", "s3", 0, 0.5, { x: -W * 0.6, r: -12 }, { x: 0, r: -3 }, "back");
+tw("#s3-ai", "s3", 0.35, 0.5, { x: W * 0.6, r: 12 }, { x: 0, r: 3 }, "back");
+tw("#s3-plus", "s3", 0.7, 0.35, { s: 0 }, { s: 1 }, "pop");
+tw("#s3-q", "s3", 1.4, 0.55, { y: 160 * U, o: 0 }, { y: 0, o: 1 }, "back");
+
+// S4 — logo
+tw("#s4-tile", "s4", 0, 0.55, { s: 0, r: -90 }, { s: 1, r: 0 }, "pop");
+tw("#s4-word", "s4", 0.3, 0.5, { x: 200 * U, o: 0 }, { x: 0, o: 1 }, "back");
+tw("#s4-sub", "s4", 0.9, 0.4, { y: 60 * U, o: 0 }, { y: 0, o: 1 }, "back");
+
+// S5 — shift form
+tw("#s5-tag", "s5", 0, 0.4, { y: -60 * U, o: 0 }, { y: 0, o: 1 }, "back");
+tw("#s5-h", "s5", 0.15, 0.5, { x: -120 * U, o: 0 }, { x: 0, o: 1 }, "back");
+tw("#s5-phone", "s5", 0, 0.6, { y: H, r: 8 }, { y: 0, r: 2 }, "back");
+tw("#s5-nosig", "s5", 0.7, 0.4, { s: 0, r: -20 }, { s: 1, r: 6 }, "pop");
+tw("#s5-v1", "s5", 0.9, 0.6, { type: 0 }, { type: 1 }, "lin");
+tw("#s5-v2", "s5", 1.5, 0.5, { type: 0 }, { type: 1 }, "lin");
+tw("#s5-v3", "s5", 2.0, 0.5, { type: 0 }, { type: 1 }, "lin");
+tw("#s5-total", "s5", 2.6, 0.4, { s: 0.6, o: 0 }, { s: 1, o: 1 }, "pop");
+tw("#s5-btn", "s5", 3.2, 0.15, { press: 0 }, { press: 1 }, "out");
+tw("#s5-btn", "s5", 3.4, 0.2, {}, { press: 0 }, "out");
+tw("#s5-saved", "s5", 3.45, 0.45, { s: 0, r: 20 }, { s: 1, r: -4 }, "pop");
+
+// S6 — bill scan
+tw("#s6-tag", "s6", 0, 0.4, { y: -60 * U, o: 0 }, { y: 0, o: 1 }, "back");
+tw("#s6-h", "s6", 0.15, 0.5, { x: -120 * U, o: 0 }, { x: 0, o: 1 }, "back");
+tw("#s6-phone", "s6", 0, 0.6, { y: H, r: -6 }, { y: 0, r: -2 }, "back");
+tw("#s6-receipt", "s6", 0.6, 0.55, { y: -H * 0.8, r: -25, o: 1 }, { y: 0, r: -5 }, "back");
+tw("#s6-ai", "s6", 1.1, 0.4, { s: 0 }, { s: 1, r: 5 }, "pop");
+tw("#s6-beam", "s6", 1.2, 1.6, { top: 0 }, { top: 96 }, "inOut");
+tw("#s6-beam", "s6", 2.8, 0.01, {}, { o: 0 }, "lin");
+tw("#s6-receipt", "s6", 3.0, 0.5, {}, { x: W, r: 25 }, "in");
+[1, 2, 3, 4].forEach((n, i) => {
+  tw(`#s6-f${n}`, "s6", 3.3 + i * 0.55, 0.35, { s: 0.85 }, { s: 1 }, "pop");
+  tw(`#s6-v${n}`, "s6", 3.3 + i * 0.55, 0.45, { type: 0 }, { type: 1 }, "lin");
+});
+tw("#s6-check", "s6", 6.3, 0.45, { s: 0, r: -20 }, { s: 1, r: -5 }, "pop");
+tw("#s6-btn", "s6", 8.1, 0.15, { press: 0 }, { press: 1 }, "out");
+tw("#s6-btn", "s6", 8.3, 0.25, {}, { press: 0 }, "out");
+
+// S7 — split
+tw("#s7-ai", "s7", 0, 0.5, PORTRAIT ? { y: -H } : { x: -W }, PORTRAIT ? { y: 0 } : { x: 0 }, "out");
+tw("#s7-hu", "s7", 0.9, 0.5, PORTRAIT ? { y: H } : { x: W }, PORTRAIT ? { y: 0 } : { x: 0 }, "out");
+
+// S8 — fail differently, then fixed
+tw("#s8-head", "s8", 0, 0.5, { y: -80 * U, o: 0 }, { y: 0, o: 1 }, "back");
+tw("#s8-card", "s8", 0.2, 0.6, { y: H * 0.7, r: 6 }, { y: 0, r: -1 }, "back");
+cls("#s8-year", "s8", 1.6, "bad", 6.4);
+tw("#s8-ytag", "s8", 1.6, 0.4, { s: 0, r: 20 }, { s: 1, r: 3 }, "pop");
+cls("#s8-day", "s8", 3.0, "bad", 6.4);
+tw("#s8-dtag", "s8", 3.0, 0.4, { s: 0, r: -20 }, { s: 1, r: -3 }, "pop");
+tw("#s8-warn", "s8", 4.3, 0.4, { s: 0, r: -30 }, { s: 1, r: 6 }, "pop");
+cls("#s8-year", "s8", 6.4, "good");
+cls("#s8-day", "s8", 6.4, "good");
+tw("#s8-fixed", "s8", 6.5, 0.45, { s: 0, r: 20 }, { s: 1, r: -4 }, "pop");
+// swap shown values: wrong values while flagged, correct once fixed
+const yearEl = $("#s8-year"), dayEl = $("#s8-day");
+toggles.push({ el: { classList: { toggle: (_, on) => { yearEl.textContent = on ? "2023" : "2026"; } } }, cls: "", t0: S.s8.a + 1.6, t1: S.s8.a + 6.4 });
+toggles.push({ el: { classList: { toggle: (_, on) => { dayEl.textContent = on ? "9" : "16"; } } }, cls: "", t0: S.s8.a + 3.0, t1: S.s8.a + 6.4 });
+
+// S9 — bars to scale (60 min = 100%)
+tw("#s9-head", "s9", 0, 0.5, { y: -80 * U, o: 0 }, { y: 0, o: 1 }, "back");
+tw("#s9-c1", "s9", 0.2, 0.5, { y: H * 0.6 }, { y: 0 }, "back");
+tw("#s9-c2", "s9", 0.4, 0.5, { y: H * 0.6 }, { y: 0 }, "back");
+tw("#s9-b1", "s9", 0.9, 0.9, { w: 0 }, { w: 100 }, "out");
+tw("#s9-b2", "s9", 1.1, 0.9, { w: 0 }, { w: 100 }, "out");
+tw("#s9-a1", "s9", 2.2, 0.8, { w: 0 }, { w: 48 }, "back");
+tw("#s9-a2", "s9", 2.4, 0.8, { w: 0 }, { w: 48 }, "back");
+
+// S10 — ledger, then end card
+tw("#s10-tag", "s10", 0, 0.4, { y: -60 * U, o: 0 }, { y: 0, o: 1 }, "back");
+tw("#s10-ledger", "s10", 0.1, 0.5, { s: 0.7, o: 0 }, { s: 1, o: 1 }, "back");
+[1, 2, 3].forEach((n, i) => tw(`#s10-r${n}`, "s10", 0.6 + i * 0.45, 0.4, { clipx: 0 }, { clipx: 100 }, "out"));
+tw("#s10-end", "s10", 4.6, 0.55, { y: H }, { y: 0 }, "out");
+tw("#s10-logo", "s10", 4.9, 0.5, { s: 0.4, o: 0 }, { s: 1, o: 1 }, "pop");
+
+window.DURATION = DURATION;
+window.render = render;
+window.ready = document.fonts.ready.then(() => { render(0); return true; });
+if (!navigator.webdriver) {
+  // live preview in a normal browser: ?t=12 to freeze, otherwise loop
+  const fixed = params.get("t");
+  if (fixed != null) window.ready.then(() => render(Number(fixed)));
+  else { const t0 = performance.now(); const loop = () => { render(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); }; window.ready.then(loop); }
+}
+</script>
+</body>
+</html>
