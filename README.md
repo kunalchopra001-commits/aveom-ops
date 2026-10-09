@@ -1,5 +1,7 @@
 # AVEOM OPS
 
+**Live:** https://aveom-ops.web.app · **Case study:** [capstone/case-study.html](capstone/case-study.html)
+
 One app for the AVEOM team: **shift hours** (works offline on site) and **petty cash**
 (payments, receipts, bills and statements), with access controlled per person by the
 Production Manager.
@@ -48,7 +50,7 @@ functions/     Firebase Cloud Functions: users, petty cash, shifts, reports, log
 firestore.rules / storage.rules   Server-side access control
 tests/         End-to-end access-control test (runs against local emulators)
 legacy/        The two original apps, for reference
-capstone/      Capstone documents
+capstone/      Capstone case study
 ```
 
 ## Development

@@ -1,0 +1,393 @@
+<title>AVEOM OPS Case Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  /* Layout: one readable column; numbers in mono like the app's ledger; saffron marks "now". */
+  :root {
+    --bg: #f3f1ec;
+    --surface: #ffffff;
+    --sunken: #e9e6df;
+    --ink: #17191e;
+    --ink-2: #4a4f5a;
+    --ink-3: #767a84;
+    --line: #dcd8cf;
+    --brand: #1b1d22;
+    --on-brand: #f6f4ef;
+    --saffron: #e9a521;
+    --saffron-ink: #865700;
+    --saffron-soft: #fbf0d6;
+    --pos: #1d754a;
+    --pos-soft: #e1f0e7;
+    --neg: #b03a29;
+    --before: #b9b3a6;
+    --font: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111216; --surface: #1a1c21; --sunken: #0c0d10; --ink: #ecebe6; --ink-2: #b4b6bd; --ink-3: #868992;
+      --line: #2a2d34; --brand: #e9a521; --on-brand: #17191e; --saffron: #e9a521; --saffron-ink: #f0bd56;
+      --saffron-soft: #2b2416; --pos: #63c793; --pos-soft: #16271e; --neg: #f08a78; --before: #4a4d55; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111216; --surface: #1a1c21; --sunken: #0c0d10; --ink: #ecebe6; --ink-2: #b4b6bd; --ink-3: #868992;
+    --line: #2a2d34; --brand: #e9a521; --on-brand: #17191e; --saffron: #e9a521; --saffron-ink: #f0bd56;
+    --saffron-soft: #2b2416; --pos: #63c793; --pos-soft: #16271e; --neg: #f08a78; --before: #4a4d55; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 860px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 80px; display: flex; flex-direction: column; gap: 56px; }
+  h1, h2, h3 { line-height: 1.15; margin: 0; text-wrap: balance; letter-spacing: -0.02em; }
+  h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; }
+  h2 { font-size: 1.55rem; font-weight: 650; }
+  h3 { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.01em; }
+  p { margin: 0; max-width: 66ch; }
+  .muted { color: var(--ink-2); }
+  .faint { color: var(--ink-3); }
+  .small { font-size: 0.88rem; }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .eyebrow { font-size: 0.74rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-3); }
+  section { display: flex; flex-direction: column; gap: 18px; }
+  a { color: inherit; text-decoration-color: var(--saffron); text-underline-offset: 3px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--saffron); outline-offset: 2px; }
+
+  /* header */
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: 0.05em; }
+  .brand svg { width: 34px; height: 34px; }
+  .brand b { color: var(--saffron-ink); }
+  header { display: flex; flex-direction: column; gap: 18px; }
+  .lede { font-size: 1.15rem; color: var(--ink-2); max-width: 60ch; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 0.9rem; color: var(--ink-3); }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; }
+  .links a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); text-decoration: none; font-weight: 600; font-size: 0.92rem; }
+  .links a.primary { background: var(--brand); color: var(--on-brand); border-color: var(--brand); }
+  .links .pending { padding: 9px 14px; border-radius: 9px; border: 1px dashed var(--line); color: var(--ink-3); font-size: 0.92rem; }
+
+  /* the two timings */
+  .timings { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .timing { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .timing .task { font-weight: 650; }
+  .bars { display: flex; flex-direction: column; gap: 8px; }
+  .bar { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 10px; font-size: 0.82rem; }
+  .bar .track { height: 26px; background: var(--sunken); border-radius: 6px; position: relative; overflow: hidden; }
+  .bar .fill { height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; font-family: var(--mono); font-size: 0.8rem; font-weight: 600; }
+  .bar .fill.before { background: var(--before); color: var(--ink); }
+  .bar .fill.after { background: var(--saffron); color: #1b1d22; }
+  .axis { display: grid; grid-template-columns: 64px 1fr; gap: 10px; font-size: 0.72rem; color: var(--ink-3); }
+  .axis div { display: flex; justify-content: space-between; font-family: var(--mono); }
+  .note { font-size: 0.82rem; color: var(--ink-3); }
+
+  /* before / now table */
+  .compare { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.93rem; min-width: 560px; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 0.74rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; background: var(--bg); }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { font-weight: 600; white-space: nowrap; }
+  td.now { color: var(--ink); }
+  td.before { color: var(--ink-2); }
+
+  /* flows */
+  .flows { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .flow { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .flow ol { margin: 0; padding: 0; list-style: none; counter-reset: s; display: flex; flex-direction: column; gap: 10px; }
+  .flow li { counter-increment: s; display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 0.93rem; }
+  .flow li::before { content: counter(s); font-family: var(--mono); font-size: 0.78rem; font-weight: 600; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--sunken); color: var(--ink-2); }
+  .who { font-size: 0.74rem; font-weight: 600; color: var(--saffron-ink); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* benefit lists */
+  .groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px 32px; }
+  .group { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .group ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+  .group li { padding-left: 18px; position: relative; font-size: 0.94rem; color: var(--ink-2); }
+  .group li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 7px; height: 7px; border-radius: 2px; background: var(--saffron); }
+  .group li b { color: var(--ink); font-weight: 600; }
+
+  /* learnings */
+  .learn { display: flex; flex-direction: column; gap: 14px; }
+  .lesson { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--surface); }
+  .lesson > div { padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .lesson > div + div { border-left: 1px solid var(--line); background: var(--pos-soft); }
+  .lesson .k { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+  .lesson > div + div .k { color: var(--pos); }
+  .lesson p { font-size: 0.93rem; }
+  @media (max-width: 620px) { .lesson { grid-template-columns: 1fr; } .lesson > div + div { border-left: 0; border-top: 1px solid var(--line); } }
+
+  /* architecture strip */
+  .arch { display: flex; flex-wrap: wrap; align-items: stretch; gap: 10px; }
+  .node { flex: 1 1 150px; min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--surface); display: flex; flex-direction: column; gap: 4px; }
+  .node b { font-size: 0.92rem; }
+  .node span { font-size: 0.82rem; color: var(--ink-3); }
+  .node.dark { background: var(--brand); color: var(--on-brand); border-color: var(--brand); }
+  .node.dark span { color: inherit; opacity: 0.75; }
+
+  .callout { background: var(--saffron-soft); border: 1px solid color-mix(in srgb, var(--saffron) 40%, var(--line)); border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
+  footer { font-size: 0.85rem; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 20px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .fill { animation: grow 900ms cubic-bezier(.2,.8,.2,1) both; transform-origin: left; }
+    .fill.after { animation-delay: 250ms; }
+    @keyframes grow { from { transform: scaleX(0.08); } }
+  }
+</style>
+
+<main class="wrap">
+  <header>
+    <span class="brand">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#1b1d22"/><path d="M12 35 L24 11 L36 35" fill="none" stroke="#e9a521" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.5 27 H30.5" stroke="#f3f1ec" stroke-width="3.4" stroke-linecap="round"/></svg>
+      AVEOM <b>OPS</b>
+    </span>
+    <span class="eyebrow">Case study · 100xEngineers C7 Capstone</span>
+    <h1>Crew hours and petty cash, recorded where the work happens</h1>
+    <p class="lede">
+      AVEOM runs events across the UAE with part-time site crew. Their hours used to reach the office through
+      WhatsApp messages and site sheets, and petty cash through cash in hand and bills in pockets. AVEOM OPS
+      replaces both with one phone app: crew log their own shifts (even with no signal), petty cash holders
+      confirm the money they receive and photograph their bills, and an AI reads each bill so they only check
+      and submit.
+    </p>
+    <div class="meta">
+      <span>Kunal Chopra, Production Manager</span>
+      <span>Live since October 2026</span>
+      <span>Dubai · AED</span>
+    </div>
+    <div class="links">
+      <a class="primary" href="https://aveom-ops.web.app" target="_blank" rel="noopener">Open the live app ↗</a>
+      <span class="pending" id="gh-link">GitHub repository — link added on submission</span>
+      <span class="pending">Demo video — coming next</span>
+    </div>
+  </header>
+
+  <section aria-labelledby="t-time">
+    <span class="eyebrow">The headline</span>
+    <h2 id="t-time">Two hour-long admin jobs, now under half the time</h2>
+    <p class="muted">
+      Both jobs repeat every pay period. Before, each one was an hour of chasing and re-typing at the end. Now the
+      entry happens at the source, when it happens, and the end-of-period work is checking and one download.
+    </p>
+    <div class="timings">
+      <div class="timing">
+        <div>
+          <div class="task">Petty cash bills</div>
+          <div class="small faint">15 bills in a period</div>
+        </div>
+        <div class="bars" role="img" aria-label="Petty cash bills: about 60 minutes before, under 30 minutes now">
+          <div class="bar"><span class="faint">Before</span><div class="track"><div class="fill before" style="width:100%">~60 min</div></div></div>
+          <div class="bar"><span><b>Now</b></span><div class="track"><div class="fill after" style="width:50%">&lt;30</div></div></div>
+        </div>
+        <div class="axis"><span></span><div><span>0</span><span>30</span><span>60 min</span></div></div>
+        <p class="note">Collecting bills, reading totals, typing them up, matching to cash handed out.</p>
+      </div>
+      <div class="timing">
+        <div>
+          <div class="task">Shift timesheets</div>
+          <div class="small faint">3 crew × 10 shifts = 30 shifts</div>
+        </div>
+        <div class="bars" role="img" aria-label="Shift timesheets: about 60 minutes before, under 30 minutes now">
+          <div class="bar"><span class="faint">Before</span><div class="track"><div class="fill before" style="width:100%">~60 min</div></div></div>
+          <div class="bar"><span><b>Now</b></span><div class="track"><div class="fill after" style="width:50%">&lt;30</div></div></div>
+        </div>
+        <div class="axis"><span></span><div><span>0</span><span>30</span><span>60 min</span></div></div>
+        <p class="note">Reading WhatsApp messages and site records, calling on-site managers, building the timesheet.</p>
+      </div>
+    </div>
+    <p class="small faint">
+      Times are the Production Manager's estimates from running both processes. A timed study over 30 runs per
+      task is the next step (see “What comes next”).
+    </p>
+  </section>
+
+  <section aria-labelledby="t-compare">
+    <span class="eyebrow">Before and now</span>
+    <h2 id="t-compare">What changed for each step</h2>
+    <div class="compare">
+      <table>
+        <thead><tr><th>Step</th><th>Before</th><th>Now</th></tr></thead>
+        <tbody>
+          <tr><td>Recording hours</td><td class="before">WhatsApp messages and handwritten site sheets, sent later</td><td class="now">Crew log each shift on their phone, offline if needed; it syncs when signal returns</td></tr>
+          <tr><td>Hours &amp; wage maths</td><td class="before">Worked out by hand per person</td><td class="now">Rounded up to the half hour and priced at AED 25/h automatically</td></tr>
+          <tr><td>Missing or late shifts</td><td class="before">Found at month end, chased by phone</td><td class="now">Each person sees their fortnight total live; gaps show up within the fortnight</td></tr>
+          <tr><td>Wrong or doubtful times</td><td class="before">Disputed after payment</td><td class="now">Overlaps and shifts over 16 h are flagged on entry; the manager corrects with a logged edit</td></tr>
+          <tr><td>Handing over petty cash</td><td class="before">Cash or transfer, remembered by both sides</td><td class="now">Recorded by the Owner; the recipient taps “Yes, I received it” or reports a problem</td></tr>
+          <tr><td>Bills</td><td class="before">Paper receipts and screenshots collected and typed up</td><td class="now">Photo or PDF uploaded; AI fills amount, date, shop and description; person checks and submits</td></tr>
+          <tr><td>Balances</td><td class="before">Reconciled at the end, by hand</td><td class="now">Live per person: confirmed money in minus approved bills</td></tr>
+          <tr><td>Reports</td><td class="before">Built in a spreadsheet</td><td class="now">One-click Excel: shifts by person and project; petty cash statements per person</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="t-flow">
+    <span class="eyebrow">How it works</span>
+    <h2 id="t-flow">Two flows, one app</h2>
+    <div class="flows">
+      <div class="flow">
+        <h3>Shift hours</h3>
+        <ol>
+          <li><span><span class="who">Crew</span><br>Opens the app on site and logs start, end and project. No signal needed.</span></li>
+          <li><span>The app saves it on the phone and sends it as soon as there's a connection.</span></li>
+          <li><span>The server checks the hours and wage are calculated correctly, and flags overlaps or very long shifts.</span></li>
+          <li><span><span class="who">Production Manager</span><br>Reviews the fortnight, corrects anything wrong (every edit is logged), downloads the timesheet.</span></li>
+        </ol>
+      </div>
+      <div class="flow">
+        <h3>Petty cash</h3>
+        <ol>
+          <li><span><span class="who">Owner</span><br>Records a transfer or cash handover, with optional proof.</span></li>
+          <li><span><span class="who">Recipient</span><br>Confirms receipt, or reports a problem with a note.</span></li>
+          <li><span>Photographs each bill. The AI reads it and fills the form; they check and submit.</span></li>
+          <li><span><span class="who">Production Manager</span><br>Approves or rejects each bill. Balances and statements update straight away.</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="t-benefits">
+    <span class="eyebrow">Benefits</span>
+    <h2 id="t-benefits">Who gains what</h2>
+    <div class="groups">
+      <div class="group">
+        <h3>Crew and petty cash holders</h3>
+        <ul>
+          <li><b>Log hours while they're fresh</b>, not from memory days later.</li>
+          <li><b>Works without signal</b> on site; nothing is lost.</li>
+          <li><b>See their own fortnight</b>: hours, earnings, balance, and every bill's status.</li>
+          <li><b>Photo in, form filled</b> — no typing totals off crumpled receipts.</li>
+          <li><b>Proof they were paid</b> and proof they handed in bills, with times.</li>
+        </ul>
+      </div>
+      <div class="group">
+        <h3>Production Manager</h3>
+        <ul>
+          <li><b>No more chasing</b> WhatsApp threads and site managers for timesheets.</li>
+          <li><b>Errors caught at entry</b>: overlaps, long shifts, old receipts, foreign currency.</li>
+          <li><b>One place to correct</b> a shift or reject a bill, with the reason recorded.</li>
+          <li><b>Full control of access</b>: create logins, switch shifts or petty cash on per person, deactivate instantly.</li>
+          <li><b>Private logs</b> of every sign-in, confirmation and change, to find when a mistake happened.</li>
+        </ul>
+      </div>
+      <div class="group">
+        <h3>Owner and Accountant</h3>
+        <ul>
+          <li><b>Live view</b> of how much petty cash each person holds.</li>
+          <li><b>No “I never got it”</b>: every payment is confirmed or disputed in the app.</li>
+          <li><b>Payroll-ready Excel</b> by person and project, totals that tie out.</li>
+          <li><b>Pay-period views</b> that match the 1st–15th and 16th–end cycle.</li>
+          <li><b>Bills arrive checked</b>, with the original photo one tap away.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="t-sec">
+    <span class="eyebrow">Security and data integrity</span>
+    <h2 id="t-sec">Built so records can be trusted</h2>
+    <div class="groups">
+      <div class="group">
+        <h3>Who can do what</h3>
+        <ul>
+          <li><b>Roles enforced on the server</b>, not just hidden buttons. 88 automated checks try every forbidden action as every role.</li>
+          <li><b>Separation of duties</b>: only the Owner sends money; only the Production Manager approves bills; nobody approves their own.</li>
+          <li><b>Logins created by the Production Manager</b> — no self sign-up. Deactivating someone signs them out everywhere.</li>
+        </ul>
+      </div>
+      <div class="group">
+        <h3>Records can't be quietly changed</h3>
+        <ul>
+          <li><b>Crew can't edit a shift</b> once it's sent, or claim more hours or pay than the times allow — the server re-checks the maths.</li>
+          <li><b>Payments, approvals and confirmations</b> are written only by the server.</li>
+          <li><b>Bill photos can't be replaced or deleted</b> after upload.</li>
+          <li><b>Every correction keeps the before and after</b>, with who and when.</li>
+        </ul>
+      </div>
+      <div class="group">
+        <h3>Data protection</h3>
+        <ul>
+          <li><b>Hosted on Google Firebase</b>, data stored in Mumbai (asia-south1).</li>
+          <li><b>Recovery</b>: any minute of the last 7 days can be restored, plus daily backups kept 14 days.</li>
+          <li><b>The AI key is kept in Google Secret Manager</b>, readable only by the bill-reading function — never on phones or in the code.</li>
+          <li><b>Passwords handled by Firebase Authentication</b>; failed sign-ins are slowed down and logged.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="t-ease">
+    <span class="eyebrow">Ease of use</span>
+    <h2 id="t-ease">Made for a phone on a busy site</h2>
+    <div class="groups">
+      <div class="group">
+        <ul>
+          <li><b>No app store</b>: open a link and “Add to Home Screen”.</li>
+          <li><b>Username and password</b> — no email needed for crew.</li>
+          <li><b>Each person sees only what they use</b>: shifts, petty cash, or both.</li>
+        </ul>
+      </div>
+      <div class="group">
+        <ul>
+          <li><b>A shift is four fields</b>; hours and pay appear as you type.</li>
+          <li><b>A bill is one photo</b> and a check of four filled fields.</li>
+          <li><b>“Action needed” cards</b> for payments waiting to be confirmed.</li>
+        </ul>
+      </div>
+      <div class="group">
+        <ul>
+          <li><b>Big tap targets, light and dark mode</b>, readable in sunlight.</li>
+          <li><b>Updates arrive by themselves</b> — one tap on “Update now”.</li>
+          <li><b>Clear status</b>: synced, waiting for signal, pending review.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="t-learn">
+    <span class="eyebrow">What the evidence changed</span>
+    <h2 id="t-learn">Three things real use and testing taught us</h2>
+    <p class="muted">Each of these came from testing or from the first days of live use, and each changed the design.</p>
+    <div class="learn">
+      <div class="lesson">
+        <div><span class="k">Found</span><h3>The AI invented a year</h3><p>A bank-app screenshot showed “16 September” with no year. The AI filled in 2023. It read the day right; the person then changed the day to the 9th, which was wrong. The app's “1,126 days old” warning caught it at review.</p></div>
+        <div><span class="k">Changed</span><h3>The AI now says when no year is printed</h3><p>The server then uses the most recent past date. Each bill also records which AI fields the person edited, so we can measure where the AI and the person each go wrong.</p></div>
+      </div>
+      <div class="lesson">
+        <div><span class="k">Found</span><h3>Bills seemed to vanish</h3><p>Bills were filed under the receipt date, so an old receipt landed in a fortnight from years ago and never showed on the current statement.</p></div>
+        <div><span class="k">Changed</span><h3>Bills count when submitted</h3><p>Statements and reports now use the submission date and show the receipt date beside it. Receipts over 60 days old are flagged.</p></div>
+      </div>
+      <div class="lesson">
+        <div><span class="k">Found</span><h3>Shifts needing rounding were rejected</h3><p>Automated testing showed the server's check refused any shift that needed rounding up (9 h 40 → 10 h), before any crew hit it.</p></div>
+        <div><span class="k">Changed</span><h3>The check was rewritten and pinned by tests</h3><p>Sixteen rounding cases now run with every change, including the ones that must be refused.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="t-arch">
+    <span class="eyebrow">Architecture</span>
+    <h2 id="t-arch">Small on purpose</h2>
+    <div class="arch">
+      <div class="node dark"><b>Phone app</b><span>React PWA, offline shift queue</span></div>
+      <div class="node"><b>Sign-in</b><span>Firebase Authentication</span></div>
+      <div class="node"><b>Database &amp; files</b><span>Firestore + Storage, Mumbai, server-enforced rules</span></div>
+      <div class="node"><b>Server functions</b><span>Payments, approvals, reports, logs</span></div>
+      <div class="node"><b>Bill reading</b><span>OpenAI vision model, called only by the server</span></div>
+    </div>
+    <p class="small faint">One AI step, placed where it saves the most typing; a person checks every result before it counts.</p>
+  </section>
+
+  <section aria-labelledby="t-next">
+    <div class="callout">
+      <span class="eyebrow">What comes next</span>
+      <h2 id="t-next">Measuring the pair</h2>
+      <p>
+        The app already records, for every bill, what the AI read and what the person submitted. Over the next
+        pay periods that gives a direct comparison of the AI alone, the person's corrections, and the final
+        result, alongside a timed study of 30 runs of each task.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    AVEOM OPS · built by Kunal Chopra for AVEOM (Art Village Events Organising and Managing), Dubai ·
+    100xEngineers C7 Capstone, October 2026
+  </footer>
+</main>
