@@ -90,9 +90,9 @@ const B = (p: Partial<Bill>): Bill => ({
   spentOn: "2026-10-02",
   description: "x",
   files: [],
-  submittedAt: 2,
   status: "pending",
   ...p,
+  submittedAt: p.submittedAt ?? Date.parse(`${p.spentOn ?? "2026-10-02"}T12:00:00+04:00`),
 });
 
 test("statement: only confirmed payments and approved bills move the balance", () => {
@@ -150,4 +150,15 @@ test("stepping between fortnights crosses months and years", () => {
   assert.deepEqual(shiftFortnight(["2027-01-01", "2027-01-15"], -1), ["2026-12-16", "2026-12-31"]);
   assert.equal(formatRange(["2026-10-01", "2026-10-15"]), "1–15 Oct 2026");
   assert.equal(formatRange(["2026-09-28", "2026-10-03"]), "28 Sep – 3 Oct 2026");
+});
+
+test("statement: bills count in the fortnight they were submitted, not the receipt date", () => {
+  const st = computeStatement(
+    [T({ amount: 500, status: "acknowledged", paidOn: "2026-10-01" })],
+    [B({ amount: 50, status: "pending", spentOn: "2023-09-17", submittedAt: Date.parse("2026-10-09T10:00:00+04:00") })],
+  );
+  const bill = st.lines.find((l) => l.kind === "bill")!;
+  assert.equal(bill.date, "2026-10-09");
+  assert.equal(bill.receiptDate, "2023-09-17");
+  assert.equal(st.lines[0].kind, "received"); // ordered by submission, after the payment
 });

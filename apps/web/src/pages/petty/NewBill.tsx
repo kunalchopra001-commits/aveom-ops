@@ -6,7 +6,16 @@ import { newId, safeFileName, uploadFile } from "@/lib/data";
 import { useProjects } from "@/lib/queries";
 import { Banner, Field, PageHead, Spinner, useOnline } from "@/components/ui";
 import { IconUpload, IconX } from "@/components/icons";
-import { MAX_BILL_FILES, MAX_UPLOAD_BYTES, parseAmount, todayDubai, type BillScan } from "@shared";
+import {
+  MAX_BILL_FILES,
+  MAX_UPLOAD_BYTES,
+  OLD_RECEIPT_DAYS,
+  daysBetween,
+  formatIsoDate,
+  parseAmount,
+  todayDubai,
+  type BillScan,
+} from "@shared";
 
 interface Picked {
   file: File;
@@ -132,6 +141,7 @@ export function NewBill() {
 
   const parsed = parseAmount(amount);
   const uploaded = files.filter((f) => f.path);
+  const receiptAge = spentOn ? daysBetween(spentOn, todayDubai()) : 0;
   const foreign = scan?.currency && scan.currency !== "AED" ? scan.currency : null;
   const ready = !!parsed && description.trim().length >= 3 && uploaded.length > 0 && !!spentOn;
 
@@ -242,6 +252,12 @@ export function NewBill() {
             </Field>
           </div>
         </div>
+        {receiptAge > OLD_RECEIPT_DAYS ? (
+          <Banner tone="warn">
+            This receipt is from {formatIsoDate(spentOn)} — {receiptAge} days ago. Is that the right date? It will
+            still go on this fortnight's statement.
+          </Banner>
+        ) : null}
         {projects.data && projects.data.length ? (
           <Field label="Project (optional)">
             <select value={projectId} onChange={(e) => setProjectId(e.target.value)}>

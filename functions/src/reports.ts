@@ -273,7 +273,7 @@ export const pettyReport = onCall(REPORT_OPTS, async (req) => {
     const person = users.get(uid)?.displayName ?? transfers.find((t) => t.toUid === uid)?.toName ?? uid;
     const st = computeStatement(
       transfers.filter((t) => t.toUid === uid && t.paidOn <= period.end),
-      bills.filter((b) => b.uid === uid && b.spentOn <= period.end),
+      bills.filter((b) => b.uid === uid && submittedOn(b) <= period.end),
     );
     const before = st.lines.filter((l) => l.date < period.start && l.counts);
     const opening = round2(before.reduce((a, l) => a + l.moneyIn - l.moneyOut, 0));
@@ -302,7 +302,7 @@ export const pettyReport = onCall(REPORT_OPTS, async (req) => {
         ws.addRow([
           formatIsoDate(l.date),
           l.kind === "received" ? "Received" : "Bill",
-          l.description,
+          l.receiptDate && l.receiptDate !== l.date ? `${l.description} (receipt ${formatIsoDate(l.receiptDate)})` : l.description,
           statusLabel(l.status),
           l.moneyIn || "",
           l.moneyOut || "",
@@ -344,9 +344,10 @@ export const pettyReport = onCall(REPORT_OPTS, async (req) => {
   // All bills in the period
   const bl = wb.addWorksheet(name("All bills"));
   header(bl, `${APP_NAME} — Petty cash bills`, period.label, gen.label, caller.name);
-  table(bl, ["Bill date", "Person", "Amount (AED)", "Description", "Shop / supplier", "Project", "Files", "Status", "Reviewed by", "Reason"], [14, 26, 14, 34, 22, 22, 8, 12, 20, 30]);
-  for (const b of bills.filter((b) => inPeriod(b.spentOn)).sort((a, b) => a.spentOn.localeCompare(b.spentOn))) {
+  table(bl, ["Submitted", "Receipt date", "Person", "Amount (AED)", "Description", "Shop / supplier", "Project", "Files", "Status", "Reviewed by", "Reason"], [14, 14, 26, 14, 34, 22, 22, 8, 12, 20, 30]);
+  for (const b of bills.filter((b) => inPeriod(submittedOn(b))).sort((a, b) => a.submittedAt - b.submittedAt)) {
     bl.addRow([
+      formatIsoDate(submittedOn(b)),
       formatIsoDate(b.spentOn),
       b.userName,
       b.amount,
@@ -359,7 +360,7 @@ export const pettyReport = onCall(REPORT_OPTS, async (req) => {
       b.rejectReason ?? "",
     ]);
   }
-  money(bl, 3);
+  money(bl, 4);
 
   personSheets.forEach((build) => build());
 
@@ -371,6 +372,11 @@ export const pettyReport = onCall(REPORT_OPTS, async (req) => {
     `Petty cash report ${period.label}: ${sorted.length} people`,
   );
 });
+
+/** Bills belong to the period they were submitted in (the receipt date is shown alongside). */
+function submittedOn(b: Bill): string {
+  return epochMsToDubaiParts(b.submittedAt).date;
+}
 
 function statusLabel(s: string): string {
   return (

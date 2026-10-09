@@ -10,6 +10,7 @@ import {
   METHOD_LABEL,
   computeStatement,
   formatAed,
+  formatDubaiDate,
   formatDubaiDateTime,
   formatIsoDate,
   type Bill,
@@ -205,7 +206,7 @@ function Bills({ bills, reviewable }: { bills: Bill[]; reviewable: Set<string> }
                     {b.userName} · {b.description}
                   </span>
                   <span className="sub">
-                    {formatIsoDate(b.spentOn)} · {b.files.length} file{b.files.length === 1 ? "" : "s"}
+                    Submitted {formatDubaiDate(b.submittedAt)} · receipt {formatIsoDate(b.spentOn)} · {b.files.length} file{b.files.length === 1 ? "" : "s"}
                     {b.projectName ? ` · ${b.projectName}` : ""}
                   </span>
                 </span>

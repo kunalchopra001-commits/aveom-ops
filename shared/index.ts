@@ -432,8 +432,13 @@ export type LedgerKind = "received" | "bill";
 export interface LedgerLine {
   id: string;
   kind: LedgerKind;
-  /** yyyy-mm-dd used for ordering + period filters. */
+  /**
+   * yyyy-mm-dd used for ordering + period filters: the payment date for money received,
+   * and the day a bill was SUBMITTED (it enters petty cash then, whatever the receipt says).
+   */
   date: string;
+  /** Bills only: the date printed on the receipt. */
+  receiptDate?: string;
   at: number;
   description: string;
   status: TransferStatus | BillStatus;
@@ -497,7 +502,8 @@ export function computeStatement(transfers: Transfer[], bills: Bill[]): Statemen
     raw.push({
       id: b.id,
       kind: "bill",
-      date: b.spentOn,
+      date: epochMsToDubaiParts(b.submittedAt).date,
+      receiptDate: b.spentOn,
       at: b.submittedAt,
       description: b.vendor ? `${b.description} · ${b.vendor}` : b.description,
       status: b.status,
@@ -530,6 +536,13 @@ export function computeStatement(transfers: Transfer[], bills: Bill[]): Statemen
 
 export function round2(n: number): number {
   return Math.round(n * 100) / 100;
+}
+
+/** Receipts older than this are flagged so an old bill isn't submitted by mistake. */
+export const OLD_RECEIPT_DAYS = 60;
+
+export function daysBetween(a: string, b: string): number {
+  return Math.round((Date.parse(b) - Date.parse(a)) / 86400000);
 }
 
 /** Parse a user-entered AED amount: positive, at most 2 decimals. */

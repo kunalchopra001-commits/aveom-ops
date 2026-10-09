@@ -3,7 +3,15 @@ import { useAuth } from "@/auth/AuthProvider";
 import { api, errMessage } from "@/lib/api";
 import { openStoredFile } from "@/lib/data";
 import { Banner, Field, Sheet, Spinner, StatusChip } from "@/components/ui";
-import { formatAed, formatDubaiDateTime, formatIsoDate, type Bill } from "@shared";
+import {
+  OLD_RECEIPT_DAYS,
+  daysBetween,
+  epochMsToDubaiParts,
+  formatAed,
+  formatDubaiDateTime,
+  formatIsoDate,
+  type Bill,
+} from "@shared";
 
 const FIELD_LABEL: Record<string, string> = { amount: "amount", spentOn: "date", vendor: "shop", description: "description" };
 
@@ -39,7 +47,7 @@ export function BillSheet({ bill: b, onClose, canReview = false }: { bill: Bill;
   return (
     <Sheet
       title={`AED ${formatAed(b.amount)}`}
-      sub={`${b.userName} · ${formatIsoDate(b.spentOn)}`}
+      sub={`${b.userName} · submitted ${formatDubaiDateTime(b.submittedAt)}`}
       onClose={onClose}
       footer={
         reviewable ? (
@@ -71,6 +79,15 @@ export function BillSheet({ bill: b, onClose, canReview = false }: { bill: Bill;
           <StatusChip status={b.status} />
         </div>
         <dl className="kv">
+          <dt>Receipt date</dt>
+          <dd>
+            {formatIsoDate(b.spentOn)}
+            {daysBetween(b.spentOn, epochMsToDubaiParts(b.submittedAt).date) > OLD_RECEIPT_DAYS ? (
+              <span className="chip warn" style={{ marginLeft: 6 }}>
+                {daysBetween(b.spentOn, epochMsToDubaiParts(b.submittedAt).date)} days before submitting
+              </span>
+            ) : null}
+          </dd>
           <dt>For</dt>
           <dd>{b.description}</dd>
           {b.vendor ? (

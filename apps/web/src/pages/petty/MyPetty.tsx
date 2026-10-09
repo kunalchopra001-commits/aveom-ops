@@ -123,6 +123,7 @@ export function MyPetty() {
                     </span>
                     <span className="sub row" style={{ gap: "0.4rem" }}>
                       {formatIsoDate(l.date)}
+                      {l.receiptDate && l.receiptDate !== l.date ? ` · receipt ${formatIsoDate(l.receiptDate)}` : ""}
                       {l.status !== "acknowledged" && l.status !== "approved" ? <StatusChip status={l.status} /> : null}
                     </span>
                   </span>
