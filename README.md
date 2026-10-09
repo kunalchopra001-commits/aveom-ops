@@ -22,7 +22,7 @@ a new database and a new interface. The originals are kept in [`legacy/`](legacy
 | **Logs** — sign-ins, acknowledgements, all activity | ✅ only | | | |
 
 Rules are enforced on the server (Firestore/Storage security rules + Cloud Functions), not
-just hidden in the UI. `tests/e2e.emulator.mjs` checks all of it (82 checks).
+just hidden in the UI. `tests/e2e.emulator.mjs` checks all of it (88 checks).
 
 ## How petty cash works
 
@@ -62,7 +62,7 @@ npm --prefix functions run build
 firebase emulators:start --project demo-aveom-ops
 npm run seed                               # test users, password: password123
 npm run dev:emu                            # http://localhost:5173 against the emulators
-npm run e2e                                # 82 access-control checks
+npm run e2e                                # 88 access-control checks
 ```
 
 Going live: see [SETUP.md](SETUP.md).
