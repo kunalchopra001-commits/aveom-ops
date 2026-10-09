@@ -124,6 +124,15 @@
   .node.dark span { color: inherit; opacity: 0.75; }
 
   .callout { background: var(--saffron-soft); border: 1px solid color-mix(in srgb, var(--saffron) 40%, var(--line)); border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
+  @media print {
+    :root, :root:not([data-theme="light"]) { --bg: #ffffff; }
+    .wrap { padding-block: 0; gap: 30px; max-width: none; }
+    .groups { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .timings, .flows { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .timing, .flow, .lesson, .group, .node, .callout, .compare, tr { break-inside: avoid; }
+    h2, .eyebrow { break-after: avoid; }
+    .links a { border-color: var(--line); }
+  }
   footer { font-size: 0.85rem; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 20px; }
   @media (prefers-reduced-motion: no-preference) {
     .fill { animation: grow 900ms cubic-bezier(.2,.8,.2,1) both; transform-origin: left; }
@@ -155,7 +164,7 @@
     <div class="links">
       <a class="primary" href="https://aveom-ops.web.app" target="_blank" rel="noopener">Open the live app ↗</a>
       <a href="https://github.com/kunalchopra001-commits/aveom-ops" target="_blank" rel="noopener">Source code on GitHub ↗</a>
-      <span class="pending">Demo video — coming next</span>
+      <span class="pending">Demo video included with the submission</span>
     </div>
   </header>
 
