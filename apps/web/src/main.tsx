@@ -6,6 +6,7 @@ import "./styles.css";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { SyncProvider } from "@/sync/SyncProvider";
 import { App } from "@/App";
+import { DemoBar } from "@/components/ui";
 
 // Apply the saved theme before first paint.
 try {
@@ -40,6 +41,7 @@ function UpdatePrompt() {
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
+      <DemoBar />
       <AuthProvider>
         <SyncProvider>
           <App />

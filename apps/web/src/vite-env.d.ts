@@ -10,6 +10,7 @@ interface ImportMetaEnv {
   readonly VITE_FB_MSG_SENDER_ID?: string;
   readonly VITE_FB_APP_ID?: string;
   readonly VITE_FUNCTIONS_REGION?: string;
+  readonly VITE_DEMO?: string;
   readonly VITE_EMU_AUTH_PORT?: string;
   readonly VITE_EMU_FIRESTORE_PORT?: string;
   readonly VITE_EMU_STORAGE_PORT?: string;

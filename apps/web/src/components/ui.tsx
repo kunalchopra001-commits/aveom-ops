@@ -2,6 +2,17 @@ import { useEffect, useState, type ReactNode } from "react";
 import { formatAed, type BillStatus, type TransferStatus } from "@shared";
 import { IconAlert, IconCheck, IconInfo, IconX } from "@/components/icons";
 
+/** Shown on the reviewers' demo copy so it is never mistaken for the live app. */
+export const IS_DEMO = import.meta.env.VITE_DEMO === "1";
+export function DemoBar() {
+  if (!IS_DEMO) return null;
+  return (
+    <div className="demo-bar" role="note">
+      DEMO · sample data only · changes here don't affect AVEOM
+    </div>
+  );
+}
+
 export function Spinner({ small }: { small?: boolean }) {
   return <div className={`spinner${small ? " sm" : ""}`} role="status" aria-label="Loading" />;
 }

@@ -26,3 +26,5 @@ Thumbs.db
 /emulator-data/
 firebase.local.json
 emu*.log
+
+dist-demo/

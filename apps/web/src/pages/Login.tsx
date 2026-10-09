@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/auth/AuthProvider";
-import { Banner, BrandMark, Field, Spinner } from "@/components/ui";
+import { Banner, BrandMark, Field, IS_DEMO, Spinner } from "@/components/ui";
 
 export function Login() {
   const { signIn } = useAuth();
@@ -57,9 +57,17 @@ export function Login() {
             {busy ? <Spinner small /> : "Sign in"}
           </button>
         </form>
-        <p className="small faint" style={{ textAlign: "center" }}>
-          Forgot your password? Ask the Production Manager to set a new one.
-        </p>
+        {IS_DEMO ? (
+          <div className="card-flat small stack-sm">
+            <b>Reviewer demo logins</b>
+            <span className="muted">Each shows the app as that role sees it. The password is in the submission notes.</span>
+            <span className="mono">demo.manager · demo.owner · demo.accountant · demo.crew</span>
+          </div>
+        ) : (
+          <p className="small faint" style={{ textAlign: "center" }}>
+            Forgot your password? Ask the Production Manager to set a new one.
+          </p>
+        )}
       </div>
     </div>
   );
