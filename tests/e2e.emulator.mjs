@@ -49,6 +49,7 @@ async function as(username) {
   connectFunctionsEmulator(fns, "127.0.0.1", P.fn);
   const cred = await signInWithEmailAndPassword(auth, `${username}@${DOMAIN}`, "password123");
   const call = (name, data) => httpsCallable(fns, name)(data).then((r) => r.data);
+  await call("recordSignIn", {}); // as the app does after every sign-in
   return { app, db, st, call, uid: cred.user.uid };
 }
 
@@ -123,7 +124,24 @@ await expectOk("Nawaz uploads a bill photo", () => uploadBytes(ref(nawaz.st, `bi
 await expectDenied("Nawaz can't upload into Philip's folder", () => uploadBytes(ref(nawaz.st, `bills/${philip.uid}/${b1}/x.png`), PNG, { contentType: "image/png" }));
 await expectDenied("Daniel (no petty) can't upload bills", () => uploadBytes(ref(daniel.st, `bills/${daniel.uid}/${b1}/x.png`), PNG, { contentType: "image/png" }));
 await expectDenied("Only photos/PDFs allowed", () => uploadBytes(ref(nawaz.st, `bills/${nawaz.uid}/${uuid()}/x.exe`), PNG, { contentType: "application/x-msdownload" }));
+// AI scan (the emulator points OpenAI at a local stub that always reads AED 47.25 / ACE Hardware).
+if (process.env.EMU_SCAN === "1") {
+  const scan = await expectOk("Nawaz's bill is read by the AI", () => nawaz.call("scanBill", { billId: b1, paths: [`bills/${nawaz.uid}/${b1}/1-receipt.png`] }));
+  scan?.amount === 47.25 && scan?.vendor === "ACE Hardware" && scan?.spentOn === "2026-10-08"
+    ? ok("…fields come back filled")
+    : bad(`…scan fields ${JSON.stringify(scan)}`);
+  await expectDenied("Philip can't scan Nawaz's bill", () => philip.call("scanBill", { billId: b1, paths: [`bills/${nawaz.uid}/${b1}/1-receipt.png`] }).catch((e) => { throw { code: "denied", message: e.message }; }));
+  await expectDenied("Daniel (no petty) can't scan bills", () => daniel.call("scanBill", { billId: b1, paths: [`bills/${daniel.uid}/${b1}/x.png`] }));
+  await expectDenied("Raw scans are visible to the Production Manager only", () => getDoc(doc(nawaz.db, "pcScans", b1)));
+}
 await expectOk("Nawaz submits AED 120.50 bill", () => nawaz.call("submitBill", { id: b1, amount: 120.5, spentOn: today, description: "Cable ties", files: [`bills/${nawaz.uid}/${b1}/1-receipt.png`] }));
+if (process.env.EMU_SCAN === "1") {
+  const saved = (await getDoc(doc(kunal.db, "pcBills", b1))).data();
+  const edited = (saved?.scan?.edited ?? []).sort().join(",");
+  edited === "amount,description,spentOn,vendor"
+    ? ok("Bill records which AI fields Nawaz changed")
+    : bad(`edited fields: ${edited}`);
+}
 await expectDenied("Bill must reference his own uploaded files", () => nawaz.call("submitBill", { id: uuid(), amount: 5, spentOn: today, description: "Fake", files: [`bills/${philip.uid}/x/y.png`] }).catch((e) => { throw { code: "denied", message: e.message }; }));
 await expectDenied("Accountant can't approve bills", () => acct.call("reviewBill", { id: b1, approve: true }));
 await expectDenied("Inaye can't approve a member's bill", () => inaye.call("reviewBill", { id: b1, approve: true }));

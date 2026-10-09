@@ -2,6 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   computeShiftFromInput,
+  fortnightOf,
+  formatRange,
+  shiftFortnight,
   computeStatement,
   emailToUsername,
   isValidUaeIban,
@@ -128,4 +131,23 @@ test("statement: fils don't drift", () => {
     [],
   );
   assert.equal(st.balance, 0.3);
+});
+
+test("fortnights are 1–15 and 16–end of month", () => {
+  assert.deepEqual(fortnightOf("2026-10-09"), ["2026-10-01", "2026-10-15"]);
+  assert.deepEqual(fortnightOf("2026-10-15"), ["2026-10-01", "2026-10-15"]);
+  assert.deepEqual(fortnightOf("2026-10-16"), ["2026-10-16", "2026-10-31"]);
+  assert.deepEqual(fortnightOf("2026-02-20"), ["2026-02-16", "2026-02-28"]);
+  assert.deepEqual(fortnightOf("2028-02-29"), ["2028-02-16", "2028-02-29"]);
+  assert.deepEqual(fortnightOf("2026-09-30"), ["2026-09-16", "2026-09-30"]);
+});
+
+test("stepping between fortnights crosses months and years", () => {
+  assert.deepEqual(shiftFortnight(["2026-10-01", "2026-10-15"], -1), ["2026-09-16", "2026-09-30"]);
+  assert.deepEqual(shiftFortnight(["2026-10-16", "2026-10-31"], -1), ["2026-10-01", "2026-10-15"]);
+  assert.deepEqual(shiftFortnight(["2026-10-16", "2026-10-31"], 1), ["2026-11-01", "2026-11-15"]);
+  assert.deepEqual(shiftFortnight(["2026-12-16", "2026-12-31"], 1), ["2027-01-01", "2027-01-15"]);
+  assert.deepEqual(shiftFortnight(["2027-01-01", "2027-01-15"], -1), ["2026-12-16", "2026-12-31"]);
+  assert.equal(formatRange(["2026-10-01", "2026-10-15"]), "1–15 Oct 2026");
+  assert.equal(formatRange(["2026-09-28", "2026-10-03"]), "28 Sep – 3 Oct 2026");
 });

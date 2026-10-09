@@ -16,6 +16,7 @@ export const COL = {
   shifts: "shifts",
   transfers: "pcTransfers",
   bills: "pcBills",
+  scans: "pcScans",
   logAccess: "logs_access",
   logAck: "logs_ack",
   logActivity: "logs_activity",
@@ -253,6 +254,52 @@ export function dubaiDayRange(startDate: string, endDate: string): [number, numb
   return [Date.parse(`${startDate}T00:00:00+04:00`), Date.parse(`${endDate}T23:59:59.999+04:00`)];
 }
 
+/* ---- fortnights: 1st–15th and 16th–end of month (the pay periods) ---- */
+
+export type DateRange = [start: string, end: string]; // inclusive yyyy-mm-dd
+
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+function lastDayOfMonth(y: number, m: number): number {
+  return new Date(Date.UTC(y, m, 0)).getUTCDate(); // m is 1-based here
+}
+
+/** The fortnight containing `date` (defaults to today in Dubai). */
+export function fortnightOf(date: string = todayDubai()): DateRange {
+  const [y, m, d] = date.split("-").map(Number);
+  const ym = `${y}-${pad2(m)}`;
+  return d <= 15 ? [`${ym}-01`, `${ym}-15`] : [`${ym}-16`, `${ym}-${pad2(lastDayOfMonth(y, m))}`];
+}
+
+/** Step a fortnight back (-1) or forward (+1). */
+export function shiftFortnight(range: DateRange, step: -1 | 1): DateRange {
+  const [y, m, d] = range[0].split("-").map(Number);
+  if (step === 1) {
+    if (d === 1) return fortnightOf(`${y}-${pad2(m)}-16`);
+    const next = new Date(Date.UTC(y, m, 1)); // first of next month
+    return fortnightOf(next.toISOString().slice(0, 10));
+  }
+  if (d === 16) return fortnightOf(`${y}-${pad2(m)}-01`);
+  const prev = new Date(Date.UTC(y, m - 1, 0)); // last day of previous month
+  return fortnightOf(prev.toISOString().slice(0, 10));
+}
+
+export function isFortnight(range: DateRange): boolean {
+  const f = fortnightOf(range[0]);
+  return f[0] === range[0] && f[1] === range[1];
+}
+
+/** "1–15 Oct 2026", "16–31 Oct 2026", or "28 Sep – 3 Oct 2026". */
+export function formatRange([a, b]: DateRange): string {
+  const [ay, am, ad] = a.split("-").map(Number);
+  const [by, bm, bd] = b.split("-").map(Number);
+  if (ay === by && am === bm) return `${ad}–${bd} ${MONTHS[bm - 1]} ${by}`;
+  if (ay === by) return `${ad} ${MONTHS[am - 1]} – ${bd} ${MONTHS[bm - 1]} ${by}`;
+  return `${formatIsoDate(a)} – ${formatIsoDate(b)}`;
+}
+
 export function validateShiftInput(input: ShiftInput): string[] {
   const problems: string[] = [];
   const start = dubaiWallTimeToEpochMs(input.startDate, input.startTime);
@@ -340,6 +387,23 @@ export interface BillFile {
   size: number;
 }
 
+/** What the AI read off a bill. Fields it couldn't read are null. */
+export interface BillScanFields {
+  amount: number | null;
+  currency: string | null;
+  spentOn: string | null;
+  vendor: string | null;
+  description: string | null;
+}
+
+export interface BillScan extends BillScanFields {
+  confidence: number;
+  model: string;
+  at: number;
+  /** Fields the person changed before submitting — how often the AI needed correcting. */
+  edited?: (keyof BillScanFields)[];
+}
+
 /** A receipt/bill a petty cash holder submits against their balance. */
 export interface Bill {
   id: string;
@@ -352,6 +416,8 @@ export interface Bill {
   projectId?: string;
   projectName?: string;
   files: BillFile[];
+  /** Present when the bill was scanned by AI before submitting. */
+  scan?: BillScan;
 
   submittedAt: number;
   status: BillStatus;

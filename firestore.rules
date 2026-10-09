@@ -88,6 +88,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ---- raw AI bill scans (kept to measure how often the AI needed correcting)
+    match /pcScans/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     // ---- logs: the Production Manager only
     match /logs_access/{id} {
       allow read: if isAdmin();

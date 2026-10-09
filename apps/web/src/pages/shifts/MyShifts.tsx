@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { collection, orderBy, query, where } from "firebase/firestore";
 import { db } from "@/firebase";
@@ -5,9 +6,23 @@ import { useAuth } from "@/auth/AuthProvider";
 import { useSync } from "@/sync/SyncProvider";
 import { useLiveQuery } from "@/lib/data";
 import { Chip, Empty, Loading, PageHead } from "@/components/ui";
+import { RangePicker } from "@/components/RangePicker";
 import { IconCloudOff, IconClock } from "@/components/icons";
 import type { OutboxEntry } from "@/sync/outbox";
-import { COL, FLAG_LABEL, formatAed, formatDubaiDate, formatDubaiTime, formatHours, round2, type Shift } from "@shared";
+import {
+  COL,
+  FLAG_LABEL,
+  dubaiDayRange,
+  formatAed,
+  formatDubaiDate,
+  formatDubaiTime,
+  formatHours,
+  formatRange,
+  fortnightOf,
+  round2,
+  type DateRange,
+  type Shift,
+} from "@shared";
 
 function span(startAt: number, endAt: number) {
   const sameDay = formatDubaiDate(startAt) === formatDubaiDate(endAt);
@@ -17,16 +32,25 @@ function span(startAt: number, endAt: number) {
 export function MyShifts() {
   const { user } = useAuth();
   const { entries, retry, discard } = useSync();
+  const [range, setRange] = useState<DateRange>(() => fortnightOf());
+  const [fromMs, toMs] = dubaiDayRange(range[0], range[1]);
   const shifts = useLiveQuery<Shift>(
     user
-      ? query(collection(db, COL.shifts), where("userUid", "==", user.uid), where("deleted", "==", false), orderBy("startAt", "desc"))
+      ? query(
+          collection(db, COL.shifts),
+          where("userUid", "==", user.uid),
+          where("deleted", "==", false),
+          where("startAt", ">=", fromMs),
+          where("startAt", "<=", toMs),
+          orderBy("startAt", "desc"),
+        )
       : null,
-    [user?.uid],
+    [user?.uid, fromMs, toMs],
   );
 
-  if (shifts.data === null) return <Loading />;
-  const synced = shifts.data;
+  const synced = shifts.data ?? [];
   const ids = new Set(synced.map((s) => s.id));
+  // Shifts still on this phone are always shown, whatever period is selected.
   const unsynced = entries.filter((e) => !ids.has(e.id));
   const hours = round2(synced.reduce((a, s) => a + s.totalHours, 0));
   const wage = round2(synced.reduce((a, s) => a + s.wageAmount, 0));
@@ -35,13 +59,25 @@ export function MyShifts() {
     <div className="page" style={{ maxWidth: 720 }}>
       <PageHead
         title="My shifts"
-        sub={`${synced.length} shifts · ${formatHours(hours)} h · AED ${formatAed(wage)}`}
         actions={
           <Link to="/log" className="btn btn-primary">
             Log a shift
           </Link>
         }
       />
+      <RangePicker value={range} onChange={setRange} />
+      <div className="grid grid-2">
+        <div className="card stat">
+          <span className="eyebrow">Hours</span>
+          <span className="value">{formatHours(hours)} h</span>
+          <span className="note">{synced.length} shift{synced.length === 1 ? "" : "s"}</span>
+        </div>
+        <div className="card stat">
+          <span className="eyebrow">Earned</span>
+          <span className="value"><small>AED</small>{formatAed(wage)}</span>
+          <span className="note">AED 25.00 / hour</span>
+        </div>
+      </div>
 
       {unsynced.length ? (
         <div className="stack-sm">
@@ -56,10 +92,12 @@ export function MyShifts() {
         </div>
       ) : null}
 
-      {synced.length === 0 && unsynced.length === 0 ? (
+      {shifts.data === null ? (
+        <Loading />
+      ) : synced.length === 0 ? (
         <div className="card">
-          <Empty icon={<IconClock />} title="No shifts yet">
-            <Link to="/log">Log your first shift</Link>
+          <Empty icon={<IconClock />} title={`No shifts in ${formatRange(range)}`}>
+            <Link to="/log">Log a shift</Link>
           </Empty>
         </div>
       ) : null}

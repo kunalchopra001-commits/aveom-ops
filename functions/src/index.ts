@@ -7,4 +7,5 @@ export { recordSignIn, recordSignOut, recordSignInFailed } from "./access";
 export { createProject, renameProject, setProjectLocked } from "./projects";
 export { onShiftCreated, editShift, deleteShift } from "./shifts";
 export { sendPettyCash, cancelTransfer, respondToTransfer, submitBill, reviewBill } from "./petty";
+export { scanBill } from "./scan";
 export { shiftReport, pettyReport, logsReport } from "./reports";

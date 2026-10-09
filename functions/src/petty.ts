@@ -13,6 +13,7 @@ import {
   todayDubai,
   type Bill,
   type BillFile,
+  type BillScan,
   type Project,
   type Transfer,
   type TransferMethod,
@@ -207,6 +208,29 @@ export const submitBill = onCall(async (req) => {
   const ref = db.collection(COL.bills).doc(id);
   if ((await ref.get()).exists) throw new HttpsError("already-exists", "This bill was already submitted.");
 
+  // If the AI read this bill first, keep what it read and which fields the person changed.
+  let scan: BillScan | undefined;
+  const scanSnap = await db.collection(COL.scans).doc(id).get();
+  if (scanSnap.exists && scanSnap.get("uid") === caller.uid) {
+    const s = scanSnap.data() as BillScan;
+    const edited: BillScan["edited"] = [];
+    if (s.amount !== amount) edited.push("amount");
+    if (s.spentOn !== spentOn) edited.push("spentOn");
+    if ((s.vendor ?? "") !== (vendor ?? "")) edited.push("vendor");
+    if ((s.description ?? "") !== description) edited.push("description");
+    scan = {
+      amount: s.amount,
+      currency: s.currency,
+      spentOn: s.spentOn,
+      vendor: s.vendor,
+      description: s.description,
+      confidence: s.confidence,
+      model: s.model,
+      at: s.at,
+      edited,
+    };
+  }
+
   const bill: Bill = {
     id,
     uid: caller.uid,
@@ -218,6 +242,7 @@ export const submitBill = onCall(async (req) => {
     projectId,
     projectName,
     files,
+    scan,
     submittedAt: nowMs(),
     status: "pending",
   };
@@ -228,7 +253,7 @@ export const submitBill = onCall(async (req) => {
     actor: caller,
     targetId: id,
     summary: `Submitted a bill for AED ${formatAed(amount)} — ${description}`,
-    after: { amount, spentOn, description, files: files.length },
+    after: { amount, spentOn, description, files: files.length, scanned: !!scan, aiFieldsEdited: scan?.edited ?? null },
   });
   return { ok: true as const, id };
 });

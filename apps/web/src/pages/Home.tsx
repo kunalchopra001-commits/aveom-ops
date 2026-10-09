@@ -26,6 +26,8 @@ import {
   formatAed,
   formatHours,
   formatIsoDate,
+  formatRange,
+  fortnightOf,
   round2,
   todayDubai,
   type Shift,
@@ -35,12 +37,6 @@ function monthStart(): string {
   return todayDubai().slice(0, 8) + "01";
 }
 
-function weekStart(): string {
-  const d = new Date(`${todayDubai()}T00:00:00Z`);
-  const dow = (d.getUTCDay() + 6) % 7; // Monday = 0
-  d.setUTCDate(d.getUTCDate() - dow);
-  return d.toISOString().slice(0, 10);
-}
 
 export function Home() {
   const { profile, role, canShifts, canPetty, isViewer, isOwner } = useAuth();
@@ -96,19 +92,22 @@ function MyPettySection() {
 function MyShiftsSection() {
   const { user } = useAuth();
   const { pendingCount, rejectedCount } = useSync();
-  const [from] = dubaiDayRange(weekStart(), weekStart());
+  const fortnight = fortnightOf();
+  const [from, to] = dubaiDayRange(fortnight[0], fortnight[1]);
   const shifts = useLiveQuery<Shift>(
     user
       ? query(
           collection(db, COL.shifts),
           where("userUid", "==", user.uid),
           where("deleted", "==", false),
+          where("startAt", ">=", from),
+          where("startAt", "<=", to),
           orderBy("startAt", "desc"),
         )
       : null,
-    [user?.uid],
+    [user?.uid, from],
   );
-  const week = (shifts.data ?? []).filter((s) => s.startAt >= from);
+  const week = shifts.data ?? [];
   const hours = round2(week.reduce((a, s) => a + s.totalHours, 0));
   const wage = round2(week.reduce((a, s) => a + s.wageAmount, 0));
 
@@ -128,7 +127,7 @@ function MyShiftsSection() {
           <span className="small muted">Works without signal — it syncs later.</span>
         </Link>
         <Stat
-          label="This week"
+          label={`This fortnight · ${formatRange(fortnight)}`}
           money={false}
           value={`${formatHours(hours)} h`}
           note={`AED ${formatAed(wage)}${pendingCount ? ` · ${pendingCount} waiting to sync` : ""}`}

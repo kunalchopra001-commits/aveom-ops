@@ -5,7 +5,17 @@ import { Empty, Loading, Money, PageHead, Segmented, StatusChip } from "@/compon
 import { IconArrowIn, IconArrowOut, IconReceipt, IconWallet } from "@/components/icons";
 import { ConfirmPayments } from "@/pages/petty/ConfirmPayments";
 import { BillSheet } from "@/pages/petty/BillSheet";
-import { computeStatement, formatAed, formatIsoDate, type Bill, type Statement } from "@shared";
+import { RangePicker } from "@/components/RangePicker";
+import {
+  computeStatement,
+  formatAed,
+  formatIsoDate,
+  formatRange,
+  fortnightOf,
+  type Bill,
+  type DateRange,
+  type Statement,
+} from "@shared";
 
 export function BalanceHero({ st }: { st: Statement }) {
   return (
@@ -42,9 +52,17 @@ export function MyPetty() {
   const bills = useMyBills();
   const [filter, setFilter] = useState<Filter>("all");
   const [openBill, setOpenBill] = useState<Bill | null>(null);
+  const [range, setRange] = useState<DateRange>(() => fortnightOf());
 
+  // The balance is all-time; the statement shows the chosen period, starting from the
+  // balance carried in from before it so the running balance still adds up.
   const st = useMemo(() => computeStatement(transfers.data ?? [], bills.data ?? []), [transfers.data, bills.data]);
-  const lines = [...st.lines]
+  const before = st.lines.filter((l) => l.date < range[0] && l.counts);
+  const opening = before.length ? before[before.length - 1].balance : 0;
+  const inRange = st.lines.filter((l) => l.date >= range[0] && l.date <= range[1]);
+  const periodIn = inRange.filter((l) => l.counts).reduce((a, l) => a + l.moneyIn, 0);
+  const periodOut = inRange.filter((l) => l.counts).reduce((a, l) => a + l.moneyOut, 0);
+  const lines = [...inRange]
     .reverse()
     .filter((l) => filter === "all" || (filter === "in" ? l.kind === "received" : l.kind === "bill"));
   const loading = transfers.data === null || bills.data === null;
@@ -63,9 +81,15 @@ export function MyPetty() {
       <ConfirmPayments transfers={transfers.data ?? []} />
       <BalanceHero st={st} />
 
+      <RangePicker value={range} onChange={setRange} />
       <div className="card card-tight">
         <div className="row-between" style={{ padding: "0.9rem 1rem" }}>
-          <h2>Statement</h2>
+          <div>
+            <h2>Statement</h2>
+            <span className="small faint num">
+              In {formatAed(periodIn)} · Out {formatAed(periodOut)}
+            </span>
+          </div>
           <Segmented<Filter>
             value={filter}
             onChange={setFilter}
@@ -80,7 +104,7 @@ export function MyPetty() {
         {loading ? (
           <Loading />
         ) : lines.length === 0 ? (
-          <Empty icon={<IconWallet />} title="Nothing here yet">
+          <Empty icon={<IconWallet />} title={`Nothing in ${formatRange(range)}`}>
             Payments from Inaye and the bills you add will appear here.
           </Empty>
         ) : (
@@ -113,6 +137,12 @@ export function MyPetty() {
             })}
           </div>
         )}
+        {!loading ? (
+          <div className="row-between small" style={{ padding: "0.7rem 1rem", borderTop: "1px solid var(--line)", background: "var(--surface-2)" }}>
+            <span className="muted">Opening balance on {formatIsoDate(range[0])}</span>
+            <b className="num">AED {formatAed(opening)}</b>
+          </div>
+        ) : null}
       </div>
       <p className="small faint">
         Only payments you've confirmed and bills the Production Manager has approved change your balance.

@@ -5,6 +5,8 @@ import { openStoredFile } from "@/lib/data";
 import { Banner, Field, Sheet, Spinner, StatusChip } from "@/components/ui";
 import { formatAed, formatDubaiDateTime, formatIsoDate, type Bill } from "@shared";
 
+const FIELD_LABEL: Record<string, string> = { amount: "amount", spentOn: "date", vendor: "shop", description: "description" };
+
 /** Bill details with attachments; reviewers get Approve / Reject. */
 export function BillSheet({ bill: b, onClose, canReview = false }: { bill: Bill; onClose: () => void; canReview?: boolean }) {
   const { user } = useAuth();
@@ -90,6 +92,21 @@ export function BillSheet({ bill: b, onClose, canReview = false }: { bill: Bill;
               <dt>{b.status === "approved" ? "Approved" : "Rejected"}</dt>
               <dd>
                 {formatDubaiDateTime(b.reviewedAt)} by {b.reviewedByName}
+              </dd>
+            </>
+          ) : null}
+          {b.scan ? (
+            <>
+              <dt>Read by AI</dt>
+              <dd>
+                {b.scan.amount != null ? `AED ${formatAed(b.scan.amount)}` : "amount unreadable"}
+                {b.scan.currency && b.scan.currency !== "AED" ? ` (${b.scan.currency})` : ""}
+                {b.scan.spentOn ? ` · ${formatIsoDate(b.scan.spentOn)}` : ""}
+                <div className={`tiny ${b.scan.edited?.length ? "neg" : "faint"}`}>
+                  {b.scan.edited?.length
+                    ? `Changed by ${b.userName}: ${b.scan.edited.map((f) => FIELD_LABEL[f] ?? f).join(", ")}`
+                    : "Submitted as read"}
+                </div>
               </dd>
             </>
           ) : null}
