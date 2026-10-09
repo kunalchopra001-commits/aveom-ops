@@ -1,6 +1,6 @@
 # AVEOM OPS
 
-**Live:** https://aveom-ops.web.app · **Case study:** [capstone/case-study.html](capstone/case-study.html)
+**Live:** https://aveom-ops.web.app · **Reviewer demo (sample data):** https://aveom-ops-demo.web.app · **Case study:** [capstone/case-study.html](capstone/case-study.html)
 
 One app for the AVEOM team: **shift hours** (works offline on site) and **petty cash**
 (payments, receipts, bills and statements), with access controlled per person by the
